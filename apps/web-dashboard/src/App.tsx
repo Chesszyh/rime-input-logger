@@ -12,7 +12,9 @@ import {
 } from "./lib/app-config";
 import { loadDashboardWorkspace } from "./lib/dashboard-client";
 import { formatScenarioSummary } from "./lib/formatters";
+import { LexiconPage } from "./pages/lexicon-page";
 import { OverviewPage } from "./pages/overview-page";
+import { ReportPage } from "./pages/report-page";
 import { StatsPage } from "./pages/stats-page";
 import { TimePage } from "./pages/time-page";
 import { VocabularyPage } from "./pages/vocabulary-page";
@@ -170,6 +172,10 @@ export const App = () => {
         return <VocabularyPage page={workspace.dashboard.pages.vocabulary} />;
       case "time":
         return <TimePage page={workspace.dashboard.pages.time} />;
+      case "lexicon":
+        return <LexiconPage lexicon={workspace.lexicon} />;
+      case "report":
+        return <ReportPage report={workspace.report} />;
       default:
         return (
           <SectionCard
