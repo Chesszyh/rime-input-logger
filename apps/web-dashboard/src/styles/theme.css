@@ -1,0 +1,53 @@
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap");
+
+:root {
+  color-scheme: light;
+  --bg: #f8fafc;
+  --bg-elevated: rgba(255, 255, 255, 0.88);
+  --bg-soft: rgba(241, 245, 249, 0.8);
+  --border: rgba(148, 163, 184, 0.24);
+  --text: #10233f;
+  --text-soft: #4b5d79;
+  --primary: #1e40af;
+  --primary-soft: #dbeafe;
+  --accent: #f59e0b;
+  --shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
+  --radius-lg: 24px;
+  --radius-md: 18px;
+  --radius-sm: 12px;
+}
+
+html,
+body {
+  min-height: 100%;
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 30%),
+    radial-gradient(circle at top right, rgba(245, 158, 11, 0.08), transparent 24%),
+    var(--bg);
+  color: var(--text);
+  font-family: "Fira Sans", system-ui, sans-serif;
+}
+
+.eyebrow {
+  margin: 0 0 0.75rem;
+  color: var(--primary);
+  font-family: "Fira Code", monospace;
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font-family: "Fira Code", monospace;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1.05;
+}
+
+.hero-copy {
+  margin: 1rem 0 0;
+  max-width: 60ch;
+  color: var(--text-soft);
+  font-size: 1rem;
+  line-height: 1.6;
+}

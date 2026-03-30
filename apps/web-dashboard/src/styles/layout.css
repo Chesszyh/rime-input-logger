@@ -1,0 +1,25 @@
+.app-shell {
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.hero-card {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+@media (max-width: 768px) {
+  .app-shell {
+    padding: 1rem;
+  }
+
+  .hero-card {
+    border-radius: 20px;
+  }
+}
