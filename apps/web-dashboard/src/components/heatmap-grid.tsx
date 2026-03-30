@@ -1,3 +1,5 @@
+import { useId } from "react";
+
 interface HeatmapCell {
   xLabel: string;
   yLabel: string;
@@ -24,9 +26,9 @@ const intensityClass = (value: number, max: number) => {
 
 export const HeatmapGrid = ({ title, description, cells }: HeatmapGridProps) => {
   const max = cells.reduce((currentMax, cell) => Math.max(currentMax, cell.value), 0);
-  const slug = title.replace(/\s+/g, "-").toLowerCase();
-  const titleId = `${slug}-title`;
-  const descriptionId = description ? `${slug}-description` : undefined;
+  const baseId = useId();
+  const titleId = `${baseId}-title`;
+  const descriptionId = description ? `${baseId}-description` : undefined;
 
   return (
     <section className="heatmap-grid" role="group" aria-labelledby={titleId} aria-describedby={descriptionId}>

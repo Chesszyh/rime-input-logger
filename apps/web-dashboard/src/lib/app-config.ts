@@ -60,7 +60,6 @@ export const presetOptions: PresetOption[] = [
   { value: "last-7-days", label: "近 7 天" },
   { value: "last-30-days", label: "近 30 天" },
   { value: "this-month", label: "本月" },
-  { value: "custom", label: "自定义" },
   { value: "all-time", label: "全部时间" }
 ];
 

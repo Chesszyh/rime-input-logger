@@ -19,7 +19,7 @@ describe("dashboard client", () => {
     expect(workspace.lexicon.rimePreview[0]).toBe("# Rime dictionary export");
   });
 
-  it("updates the range label when the preset changes", async () => {
+  it("uses the effective dashboard range label instead of echoing the requested preset", async () => {
     const workspace = await loadDashboardWorkspace({
       scenarioId: "normal-day",
       preset: "last-30-days",
@@ -28,6 +28,7 @@ describe("dashboard client", () => {
       lexiconCategory: "all"
     });
 
-    expect(workspace.selection.rangeLabel).toBe("近 30 天");
+    expect(workspace.selection.preset).toBe("last-30-days");
+    expect(workspace.selection.rangeLabel).toBe(workspace.dashboard.pages.overview.rangeLabel);
   });
 });

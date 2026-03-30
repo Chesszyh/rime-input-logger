@@ -7,17 +7,20 @@ Run from repository root:
 1. `npm run test:agent-f`
 2. `npm test`
 3. `npm run build`
-4. `npm run release:check`
+4. `npm run web:build`
+5. `npm run release:check`
 
 ## What `release:check` Verifies
 
 - Full Vitest suite passes.
 - TypeScript build passes.
+- Vite browser build passes.
 - Demo entry is runnable with the default integrated scenario.
 
 ## Packaging Scope
 
 - App entry: `apps/demo/src/index.ts`
+- Web app entry: `apps/web-dashboard/src/main.tsx`
 - Contracts: `packages/contracts/src/index.ts`
 - Runtime services: `packages/services/src/*`
 - Analytics engine: `packages/analytics/src/*`

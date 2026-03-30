@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 
 interface ChartCardProps {
   title: string;
@@ -7,9 +7,9 @@ interface ChartCardProps {
 }
 
 export const ChartCard = ({ title, description, children }: ChartCardProps) => {
-  const slug = title.replace(/\s+/g, "-").toLowerCase();
-  const titleId = `${slug}-title`;
-  const descriptionId = description ? `${slug}-description` : undefined;
+  const baseId = useId();
+  const titleId = `${baseId}-title`;
+  const descriptionId = description ? `${baseId}-description` : undefined;
 
   return (
     <section className="chart-card" aria-labelledby={titleId} aria-describedby={descriptionId}>

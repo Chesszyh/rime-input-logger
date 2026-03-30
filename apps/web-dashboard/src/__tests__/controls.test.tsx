@@ -25,10 +25,11 @@ describe("dashboard controls", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText("近 30 天")).toBeInTheDocument();
+      expect(screen.getByLabelText(/preset/i)).toHaveValue("last-30-days");
     });
 
     const activeRegion = screen.getByRole("main", { name: /active page region/i });
     expect(within(activeRegion).getByText(/current status/i)).toBeInTheDocument();
+    expect(screen.getByText("近 7 天")).toBeInTheDocument();
   });
 });

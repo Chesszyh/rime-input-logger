@@ -10,7 +10,7 @@ import {
 import { createServiceRegistry } from "../../../../packages/services/src/index";
 import { buildLexiconViewModel } from "./view-models/lexicon-view-model";
 import { buildReportViewModel } from "./view-models/report-view-model";
-import { formatPresetLabel, formatScenarioSummary } from "./formatters";
+import { formatScenarioLabel } from "./formatters";
 
 export interface DashboardWorkspaceRequest {
   scenarioId: string;
@@ -97,11 +97,12 @@ export const loadDashboardWorkspace = async (
   });
 
   const selectedCategoryEntries = normalizeEntries(listed.entries);
+  const effectiveRangeLabel = dashboard.pages.overview.rangeLabel;
   const selection = {
     scenarioId: request.scenarioId,
-    scenarioSummary: formatScenarioSummary(request.scenarioId, request.preset),
+    scenarioSummary: `${formatScenarioLabel(request.scenarioId)} · ${effectiveRangeLabel}`,
     preset: request.preset,
-    rangeLabel: formatPresetLabel(request.preset),
+    rangeLabel: effectiveRangeLabel,
     lexiconCategory: request.lexiconCategory,
     hideTermsInReport: request.hideTermsInReport,
     forceMaskedContent: request.forceMaskedContent

@@ -1,3 +1,5 @@
+import { useId } from "react";
+
 interface TagCloudPoint {
   label: string;
   value: number;
@@ -10,8 +12,8 @@ interface TagCloudProps {
 
 export const TagCloud = ({ title, points }: TagCloudProps) => {
   const max = points.reduce((currentMax, point) => Math.max(currentMax, point.value), 0) || 1;
-  const slug = title.replace(/\s+/g, "-").toLowerCase();
-  const titleId = `${slug}-title`;
+  const baseId = useId();
+  const titleId = `${baseId}-title`;
 
   return (
     <section className="tag-cloud" aria-labelledby={titleId}>

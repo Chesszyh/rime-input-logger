@@ -10,6 +10,7 @@ Use this checklist immediately before publishing, tagging, or merging release-bo
 - [ ] `npm run test:agent-f` passes
 - [ ] `npm test` passes
 - [ ] `npm run build` passes
+- [ ] `npm run web:build` passes
 - [ ] `npm run demo -- --scenario normal-day --preset last-7-days` exits successfully
 - [ ] `npm run demo:empty` exits successfully
 - [ ] `npm run release:check` passes
@@ -18,9 +19,10 @@ Use this checklist immediately before publishing, tagging, or merging release-bo
 
 ## Expected Evidence
 
-- Test suite: `16` files, `70` tests, `0` failures
+- Test suite: `24` files, `79` tests, `0` failures
 - Agent F suite: `2` files, `9` tests, `0` failures
 - Build: TypeScript compile exits `0`
+- Web build: Vite production build exits `0`
 - Demo commands: print valid JSON payloads for both mainline and empty-history flows
 - Release check: completes end-to-end without manual intervention
 
@@ -34,6 +36,8 @@ Use this checklist immediately before publishing, tagging, or merging release-bo
   - Do not rely on partial green subsets
 - `npm run build` fails:
   - Resolve typing or module path regressions before release
+- `npm run web:build` fails:
+  - Check `apps/web-dashboard/src/**` for browser-only import or rendering regressions
 - Demo command fails:
   - Check `apps/demo/src/config.ts`
   - Confirm scenario IDs from `services.meta.listFixtureScenarios()`
@@ -44,4 +48,5 @@ As of the current integrated baseline, release readiness depends on source-based
 
 1. The repo can be installed with `npm install`
 2. The CLI demo can run locally
-3. The regression and snapshot assets stay aligned with the service output
+3. The Web Dashboard can complete a production build
+4. The regression and snapshot assets stay aligned with the service output
