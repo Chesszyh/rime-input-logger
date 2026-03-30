@@ -12,6 +12,10 @@ import {
 } from "./lib/app-config";
 import { loadDashboardWorkspace } from "./lib/dashboard-client";
 import { formatScenarioSummary } from "./lib/formatters";
+import { OverviewPage } from "./pages/overview-page";
+import { StatsPage } from "./pages/stats-page";
+import { TimePage } from "./pages/time-page";
+import { VocabularyPage } from "./pages/vocabulary-page";
 import type { DashboardPageKey } from "../../../packages/dashboard/src/index";
 import type { ViewStatusCode } from "../../../packages/contracts/src/index";
 
@@ -152,6 +156,46 @@ export const App = () => {
   const shellScenarioSummary =
     workspace?.selection.scenarioSummary ?? formatScenarioSummary(scenarioId, preset);
 
+  const activePageContent = (() => {
+    if (!workspace) {
+      return null;
+    }
+
+    switch (selection.activePage) {
+      case "overview":
+        return <OverviewPage page={workspace.dashboard.pages.overview} />;
+      case "stats":
+        return <StatsPage page={workspace.dashboard.pages.stats} />;
+      case "vocabulary":
+        return <VocabularyPage page={workspace.dashboard.pages.vocabulary} />;
+      case "time":
+        return <TimePage page={workspace.dashboard.pages.time} />;
+      default:
+        return (
+          <SectionCard
+            eyebrow="Pending"
+            title={activePageLabel}
+            description="该页面会在后续任务中补齐。当前先保留只读占位。"
+          >
+            <div className="dashboard-main__metrics">
+              <div>
+                <span className="dashboard-main__metric-label">Total entries</span>
+                <strong>{workspace.lexicon.overview.totalEntries}</strong>
+              </div>
+              <div>
+                <span className="dashboard-main__metric-label">Selected category</span>
+                <strong>{workspace.lexicon.selectedCategoryLabel}</strong>
+              </div>
+              <div>
+                <span className="dashboard-main__metric-label">Report template</span>
+                <strong>{workspace.report.selectedTemplateTitle}</strong>
+              </div>
+            </div>
+          </SectionCard>
+        );
+    }
+  })();
+
   return (
     <AppShell
       sidebar={
@@ -226,36 +270,7 @@ export const App = () => {
               </div>
             </SectionCard>
 
-            <div className="dashboard-main__grid">
-              <SectionCard
-                eyebrow="Workspace"
-                title="Workspace summary"
-                description="在 Task 4 页面图表落地前，先保留可浏览的只读骨架。"
-              >
-                <div className="dashboard-main__metrics">
-                  <div>
-                    <span className="dashboard-main__metric-label">Total entries</span>
-                    <strong>{workspace.lexicon.overview.totalEntries}</strong>
-                  </div>
-                  <div>
-                    <span className="dashboard-main__metric-label">Selected category</span>
-                    <strong>{workspace.lexicon.selectedCategoryLabel}</strong>
-                  </div>
-                  <div>
-                    <span className="dashboard-main__metric-label">Report template</span>
-                    <strong>{workspace.report.selectedTemplateTitle}</strong>
-                  </div>
-                </div>
-              </SectionCard>
-
-              <SectionCard
-                eyebrow="Report"
-                title="Preview"
-                description={workspace.report.selectedTemplateSummary}
-              >
-                <p className="dashboard-main__preview">{workspace.report.textPreview}</p>
-              </SectionCard>
-            </div>
+            {activePageContent}
 
             {activePageState === "NO_DATA" || activePageState === "EMPTY_RESULT" ? (
               <EmptyStatePanel
