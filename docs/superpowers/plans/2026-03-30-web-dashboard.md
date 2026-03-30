@@ -15,7 +15,7 @@
 ### New App
 
 - `apps/web-dashboard/vite.config.ts`
-  - Vite config for the standalone web app.
+  - Vite config for the standalone web app, including the correct `root` for `apps/web-dashboard`.
 - `apps/web-dashboard/index.html`
   - Browser entry with viewport metadata.
 - `apps/web-dashboard/src/main.tsx`
@@ -34,7 +34,7 @@
 - `apps/web-dashboard/src/lib/app-config.ts`
   - Scenario IDs, preset lists, labels, defaults.
 - `apps/web-dashboard/src/lib/dashboard-client.ts`
-  - Calls `createServiceRegistry()` and assembles the combined UI data payload.
+  - Calls `createServiceRegistry()` and assembles the combined UI data payload, including lexicon highlights and export preview data.
 - `apps/web-dashboard/src/lib/view-models/dashboard-view-model.ts`
   - Maps service/bootstrap outputs into component-friendly UI sections.
 - `apps/web-dashboard/src/lib/view-models/lexicon-view-model.ts`
@@ -51,7 +51,7 @@
 - `apps/web-dashboard/src/components/sidebar-nav.tsx`
   - Page navigation with view-state badges.
 - `apps/web-dashboard/src/components/topbar-controls.tsx`
-  - Scenario switcher, preset switcher, report toggles.
+  - Scenario switcher, preset switcher, report toggles, current range summary, and page-level status hint.
 - `apps/web-dashboard/src/components/state-badge.tsx`
   - Colored state code badge.
 - `apps/web-dashboard/src/components/metric-grid.tsx`
@@ -88,10 +88,14 @@
 
 - `apps/web-dashboard/src/__tests__/app.smoke.test.tsx`
   - Root render smoke test.
+- `apps/web-dashboard/src/__tests__/data-client.test.ts`
+  - Client aggregation and preset-driven data loading behavior.
 - `apps/web-dashboard/src/__tests__/controls.test.tsx`
   - Scenario/preset switching behavior.
 - `apps/web-dashboard/src/__tests__/empty-state.test.tsx`
   - Empty history and empty-result rendering.
+- `apps/web-dashboard/src/__tests__/accessibility.test.tsx`
+  - Keyboard navigation, focus visibility, and announced error semantics.
 - `apps/web-dashboard/src/__tests__/report-options.test.tsx`
   - Report option toggles affect preview state.
 
@@ -161,6 +165,8 @@ Create:
 
 Render a placeholder shell with one heading and one main region.
 
+In `apps/web-dashboard/vite.config.ts`, explicitly configure the app root so Vite resolves `apps/web-dashboard/index.html` correctly for both dev and build commands.
+
 - [ ] **Step 5: Add minimal style foundation**
 
 Create `reset.css`, `theme.css`, and `layout.css` with:
@@ -176,7 +182,10 @@ Ensure:
 
 - `tsconfig.json` includes `apps/web-dashboard/**/*.ts` and `apps/web-dashboard/**/*.tsx`
 - `tsconfig.json` enables JSX via `compilerOptions.jsx`
+- `tsconfig.json` adds `DOM` and `DOM.Iterable` to `compilerOptions.lib`
 - `vitest.config.ts` supports `jsdom` for web-dashboard tests without affecting current Node tests
+- `vitest.config.ts` loads a setup file for `@testing-library/jest-dom`
+- create `apps/web-dashboard/src/test/setup.ts` and import `@testing-library/jest-dom`
 
 - [ ] **Step 7: Run scaffold test to verify it passes**
 
@@ -201,20 +210,37 @@ git commit -m "feat: scaffold web dashboard app"
 - Create: `apps/web-dashboard/src/lib/view-models/lexicon-view-model.ts`
 - Create: `apps/web-dashboard/src/lib/view-models/report-view-model.ts`
 - Create: `apps/web-dashboard/src/lib/formatters.ts`
+- Create: `apps/web-dashboard/src/__tests__/data-client.test.ts`
+- Create: `apps/web-dashboard/src/__tests__/controls.test.tsx`
 - Modify: `apps/web-dashboard/src/App.tsx`
 
-- [ ] **Step 1: Write the failing data orchestration test**
+- [ ] **Step 1: Write the failing data orchestration tests**
 
-Create `apps/web-dashboard/src/__tests__/controls.test.tsx` with a test that:
+Create `apps/web-dashboard/src/__tests__/data-client.test.ts` with tests that:
+
+- load `normal-day` with `last-7-days`
+- then load `normal-day` with `last-30-days`
+- assert the returned range label or preset-backed summary changes
+- assert the combined payload includes:
+  - lexicon overview
+  - high-frequency-new items
+  - low-frequency-stale items
+  - Rime export preview snippet
+
+Create `apps/web-dashboard/src/__tests__/controls.test.tsx` with a UI test that:
 
 - renders `App`
 - changes scenario from `normal-day` to `empty-history`
-- expects at least one page state label to update from `READY` to `NO_DATA`
+- asserts visible summary copy changes from a populated state to a `NO_DATA`-style explanation
+- changes preset from `last-7-days` to `last-30-days`
+- asserts the visible range label changes
+- asserts the top control bar shows a current range summary
+- asserts the top control bar shows the current page-level status hint
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run apps/web-dashboard/src/__tests__/controls.test.tsx`
-Expected: FAIL because config, loading state, and scenario switching do not exist yet.
+Run: `npx vitest run apps/web-dashboard/src/__tests__/data-client.test.ts apps/web-dashboard/src/__tests__/controls.test.tsx`
+Expected: FAIL because config, client aggregation, loading state, preset switching, and scenario switching do not exist yet.
 
 - [ ] **Step 3: Define app defaults and option metadata**
 
@@ -231,6 +257,9 @@ In `dashboard-client.ts`, implement one async loader that:
 - creates the service registry
 - loads dashboard bootstrap
 - loads lexicon overview/list
+- loads high-frequency-new lexicon items
+- loads low-frequency-stale lexicon items
+- loads a Rime export preview snippet
 - returns a combined object for UI consumption
 
 Keep all direct package calls here so page components stay clean.
@@ -252,6 +281,7 @@ Add:
 - `hideTermsInReport`
 - `forceMaskedContent`
 - `activePage`
+- `lexiconCategory`
 - `loading`
 - `error`
 
@@ -259,7 +289,7 @@ and trigger reloads when scenario/preset/report options change.
 
 - [ ] **Step 7: Run the controls test to verify it passes**
 
-Run: `npx vitest run apps/web-dashboard/src/__tests__/controls.test.tsx`
+Run: `npx vitest run apps/web-dashboard/src/__tests__/data-client.test.ts apps/web-dashboard/src/__tests__/controls.test.tsx`
 Expected: PASS
 
 - [ ] **Step 8: Commit**
@@ -267,7 +297,7 @@ Expected: PASS
 Run:
 
 ```bash
-git add apps/web-dashboard/src/lib apps/web-dashboard/src/App.tsx apps/web-dashboard/src/__tests__/controls.test.tsx
+git add apps/web-dashboard/src/lib apps/web-dashboard/src/App.tsx apps/web-dashboard/src/__tests__/controls.test.tsx apps/web-dashboard/src/__tests__/data-client.test.ts
 git commit -m "feat: add web dashboard data layer"
 ```
 
@@ -456,6 +486,7 @@ Add a test that:
 - expects the report preview to update
 
 Also assert the lexicon page shows an overview summary and at least one table row for `normal-day`.
+Also assert that changing the lexicon category filter updates the visible row set or section state.
 
 - [ ] **Step 2: Run test to verify it fails**
 
@@ -471,6 +502,8 @@ Include:
 - read-only table
 - high-frequency-new and low-frequency-stale highlights
 - Rime export preview snippet
+
+Wire `lexiconCategory` state so the filter is interactive and page-local behavior is testable.
 
 - [ ] **Step 4: Implement the report page**
 
@@ -500,6 +533,7 @@ git commit -m "feat: add lexicon and report pages"
 
 **Files:**
 - Create: `apps/web-dashboard/src/__tests__/empty-state.test.tsx`
+- Create: `apps/web-dashboard/src/__tests__/accessibility.test.tsx`
 - Modify: `package.json`
 - Modify: `README.md`
 - Modify: `docs/user-guide.md`
@@ -515,12 +549,32 @@ Create assertions that `empty-history` renders:
 - empty metric or placeholder blocks
 - no crash when navigating across all six pages
 
+Also include a second failing path that forces or mocks:
+
+- `EMPTY_RESULT`
+- `ERROR`
+
+and asserts each state renders distinct explanatory copy.
+
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run apps/web-dashboard/src/__tests__/empty-state.test.tsx`
 Expected: FAIL because the empty-state handling across all pages is not complete yet.
 
-- [ ] **Step 3: Complete empty and filtered-result handling**
+- [ ] **Step 3: Write the failing accessibility test**
+
+Create `apps/web-dashboard/src/__tests__/accessibility.test.tsx` with assertions that:
+
+- keyboard focus can reach navigation and top controls
+- interactive controls expose accessible names
+- the error banner uses `role="alert"` or equivalent announced semantics
+
+- [ ] **Step 4: Run the accessibility test to verify it fails**
+
+Run: `npx vitest run apps/web-dashboard/src/__tests__/accessibility.test.tsx`
+Expected: FAIL because focus handling and alert semantics are not fully wired yet.
+
+- [ ] **Step 5: Complete empty and filtered-result handling**
 
 Ensure the app cleanly renders:
 
@@ -530,7 +584,15 @@ Ensure the app cleanly renders:
 
 without broken layout or missing explanatory text.
 
-- [ ] **Step 4: Add root scripts and docs**
+- [ ] **Step 6: Add accessibility semantics**
+
+Ensure:
+
+- nav and controls are keyboard reachable
+- focus states are visible
+- errors are announced with semantic alert behavior
+
+- [ ] **Step 7: Add root scripts and docs**
 
 Add scripts such as:
 
@@ -544,17 +606,17 @@ Document:
 - how to switch scenarios
 - how to test the web app
 
-- [ ] **Step 5: Run the empty-state test to verify it passes**
+- [ ] **Step 8: Run state and accessibility tests to verify they pass**
 
-Run: `npx vitest run apps/web-dashboard/src/__tests__/empty-state.test.tsx`
+Run: `npx vitest run apps/web-dashboard/src/__tests__/empty-state.test.tsx apps/web-dashboard/src/__tests__/accessibility.test.tsx`
 Expected: PASS
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 9: Commit**
 
 Run:
 
 ```bash
-git add package.json README.md docs/user-guide.md docs/developer-guide.md docs/demo/demo-playbook.md docs/testing/full-test-guide.md apps/web-dashboard/src/__tests__/empty-state.test.tsx
+git add package.json README.md docs/user-guide.md docs/developer-guide.md docs/demo/demo-playbook.md docs/testing/full-test-guide.md apps/web-dashboard/src/__tests__/empty-state.test.tsx apps/web-dashboard/src/__tests__/accessibility.test.tsx
 git commit -m "docs: add web dashboard usage and test guidance"
 ```
 
@@ -571,7 +633,7 @@ Expected: PASS
 - [ ] **Step 2: Run the existing full test suite**
 
 Run: `npm test`
-Expected: PASS with no regressions in existing 16-file baseline plus the new web tests.
+Expected: PASS with no regressions in the existing workspace test suite plus the new web tests.
 
 - [ ] **Step 3: Run TypeScript build**
 
@@ -596,7 +658,9 @@ Expected: local dashboard opens and the following are visually verified:
 - scenario switching
 - preset switching
 - all six pages
+- `NO_DATA`, `EMPTY_RESULT`, and `ERROR` states
 - responsive behavior at 375px, 768px, 1024px, 1440px
+- keyboard navigation and visible focus states
 - reduced-motion friendly transitions
 
 - [ ] **Step 7: Commit**
