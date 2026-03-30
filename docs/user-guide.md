@@ -12,6 +12,7 @@ Personal Input Analytics System 是一个面向 Rime/Fcitx5 输入场景的本�
 - 治理与保留策略
 - Dashboard 与报告输出
 - 可直接运行的 demo CLI
+- 可直接在浏览器中查看的 Web Dashboard
 
 当前版本主要通过内置样例场景演示完整流程，方便在没有真实输入法采集环境的情况下验证产品主线。
 
@@ -43,6 +44,26 @@ npm install
 ```
 
 安装完成后，你就可以直接运行 demo 和测试命令。
+
+### 4.1 启动 Web Dashboard
+
+```bash
+npm run web
+```
+
+启动后，按终端输出打开本地地址，默认进入浏览器仪表盘。你可以在页面顶部直接切换：
+
+- `scenario`
+- `preset`
+- `lexicon category`
+- `hide terms in report`
+- `force masked content`
+
+如果你只想验证前端能否正常打包，运行：
+
+```bash
+npm run web:build
+```
 
 ## 5. 最短上手路径
 
@@ -198,6 +219,8 @@ npm run demo -- --scenario empty-history --preset today
 - 安装依赖：`npm install`
 - 运行主线 demo：`npm run demo`
 - 运行空数据 demo：`npm run demo:empty`
+- 启动浏览器 Dashboard：`npm run web`
+- 构建浏览器 Dashboard：`npm run web:build`
 - 运行 Agent F 回归测试：`npm run test:agent-f`
 - 运行全量测试：`npm test`
 - 构建 TypeScript：`npm run build`
@@ -211,6 +234,7 @@ npm run demo -- --scenario empty-history --preset today
 2. `npm run demo:empty` 能输出 `NO_DATA` 主状态
 3. `npm test` 通过
 4. `npm run build` 通过
+5. `npm run web:build` 通过
 
 如果你准备做发布前确认，再额外运行：
 

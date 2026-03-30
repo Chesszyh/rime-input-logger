@@ -9,6 +9,7 @@ Provide the shortest reproducible walkthrough for a first-time operator.
 1. `npm install`
 2. `npm run demo`
 3. `npm run demo:empty`
+4. `npm run web`
 
 ## Expected Flow
 
@@ -20,6 +21,7 @@ Provide the shortest reproducible walkthrough for a first-time operator.
 2. The default path should use `normal-day` + `last-7-days`.
 3. The overview highlights should mention the current range, active days, and a semantic high-frequency term.
 4. The report preview should show masked output by default.
+5. `npm run web` should open a local dashboard where scenario/preset can be switched interactively.
 
 ## Alternate Scenarios
 

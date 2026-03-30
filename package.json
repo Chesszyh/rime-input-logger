@@ -14,7 +14,7 @@
     "test:web": "vitest run apps/web-dashboard/src/__tests__",
     "web": "vite --config apps/web-dashboard/vite.config.ts",
     "web:build": "vite build --config apps/web-dashboard/vite.config.ts",
-    "release:check": "npm run test && npm run build && npm run demo -- --scenario normal-day --preset last-7-days >/dev/null",
+    "release:check": "npm run test && npm run build && npm run web:build && npm run demo -- --scenario normal-day --preset last-7-days >/dev/null",
     "test": "vitest run",
     "test:agent-f": "vitest run tests/agentF.regression.test.ts tests/agentF.snapshots.test.ts"
   },

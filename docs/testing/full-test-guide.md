@@ -24,6 +24,7 @@ Use these first after any change:
 ```bash
 npm run demo -- --scenario normal-day --preset last-7-days
 npm run demo:empty
+npm run web:build
 ```
 
 What to look for:
@@ -32,6 +33,7 @@ What to look for:
 - Output is valid JSON
 - `normal-day` shows `READY`
 - `empty-history` shows `NO_DATA`
+- Web dashboard completes a production build
 
 ## 3. Agent F Regression And Snapshot Checks
 
@@ -62,8 +64,8 @@ npm test
 
 Current expected result:
 
-- `16` test files
-- `70` tests
+- `23` test files
+- `78` tests
 - `0` failures
 
 Suite coverage by area:
@@ -76,6 +78,7 @@ Suite coverage by area:
 - Agent E: governance
 - Agent F: regression and snapshots
 - Agent G: demo/release integration
+- Web Dashboard: shell, controls, visualizations, pages, empty states, report toggles
 
 ## 5. Build Verification
 
@@ -126,7 +129,8 @@ This runs:
 
 1. `npm test`
 2. `npm run build`
-3. `npm run demo -- --scenario normal-day --preset last-7-days`
+3. `npm run web:build`
+4. `npm run demo -- --scenario normal-day --preset last-7-days`
 
 Use this before tagging or pushing release-bound work.
 

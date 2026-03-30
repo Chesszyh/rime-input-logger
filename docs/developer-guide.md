@@ -10,6 +10,7 @@
 
 - `apps/`
   - `demo/`：CLI 演示入口
+  - `web-dashboard/`：本地浏览器 Dashboard
 - `packages/`
   - `contracts/`：共享类型与页面数据契约
   - `mock-data/`：样例场景
@@ -97,6 +98,8 @@ CLI 入口，负责解析命令参数并打印 JSON 结果。
 - 全量测试：`npm test`
 - Agent F 回归与快照测试：`npm run test:agent-f`
 - 构建：`npm run build`
+- 浏览器开发：`npm run web`
+- 浏览器打包：`npm run web:build`
 - 主线 demo：`npm run demo`
 - 空数据 demo：`npm run demo:empty`
 - 发布门禁：`npm run release:check`
@@ -118,6 +121,7 @@ npm run demo:empty
 
 ```bash
 npm run test:agent-f
+npm run test:web
 ```
 
 ### 全量验证
@@ -162,6 +166,16 @@ npm run release:check
 - `docs/demo/demo-playbook.md`
 - `docs/testing/full-test-guide.md`
 
+### 改 Web Dashboard 时
+
+同步检查并更新：
+
+- `apps/web-dashboard/src/**`
+- `docs/user-guide.md`
+- `docs/developer-guide.md`
+- `docs/testing/full-test-guide.md`
+- `README.md`
+
 ### 改测试门禁时
 
 同步检查并更新：
@@ -179,10 +193,11 @@ npm run release:check
 2. 运行 `npm run test:agent-f`
 3. 运行 `npm test`
 4. 运行 `npm run build`
-5. 运行 `npm run demo -- --scenario normal-day --preset last-7-days`
-6. 运行 `npm run demo:empty`
-7. 运行 `npm run release:check`
-8. 对照 [release/final-preflight-checklist.md](./release/final-preflight-checklist.md) 做最终核对
+5. 运行 `npm run web:build`
+6. 运行 `npm run demo -- --scenario normal-day --preset last-7-days`
+7. 运行 `npm run demo:empty`
+8. 运行 `npm run release:check`
+9. 对照 [release/final-preflight-checklist.md](./release/final-preflight-checklist.md) 做最终核对
 
 ## 8. 当前维护注意事项
 
@@ -220,7 +235,8 @@ npm run release:check
 1. `npm install`
 2. `npm run demo`
 3. `npm run demo:empty`
-4. `npm test`
-5. 阅读 [docs/README.md](./README.md)
-6. 阅读 [architecture/module-dependency-map.md](./architecture/module-dependency-map.md)
-7. 阅读 [contracts/shared-contract.md](./contracts/shared-contract.md)
+4. `npm run web`
+5. `npm test`
+6. 阅读 [docs/README.md](./README.md)
+7. 阅读 [architecture/module-dependency-map.md](./architecture/module-dependency-map.md)
+8. 阅读 [contracts/shared-contract.md](./contracts/shared-contract.md)

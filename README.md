@@ -9,6 +9,8 @@ Personal Input Analytics System for Rime/Fcitx5 input capture, analytics, lexico
 - `npm run test:agent-f`
 - `npm run demo`
 - `npm run demo:empty`
+- `npm run web`
+- `npm run web:build`
 - `npm run build`
 - `npm run release:check`
 
@@ -17,6 +19,7 @@ Personal Input Analytics System for Rime/Fcitx5 input capture, analytics, lexico
 1. Run `npm install`.
 2. Run `npm run demo` to view the main `normal-day` integrated flow.
 3. Run `npm run demo:empty` to inspect the first-run / no-data path.
+4. Run `npm run web` to open the local browser dashboard.
 4. Run `npm run release:check` before publishing or merging release work.
 
 ## Documentation
@@ -49,6 +52,7 @@ Personal Input Analytics System for Rime/Fcitx5 input capture, analytics, lexico
 
 - Demo entry: `apps/demo/src/index.ts`
 - Demo config parsing: `apps/demo/src/config.ts`
+- Web dashboard: `apps/web-dashboard`
 - Demo playbook: `docs/demo/demo-playbook.md`
 - Full test guide: `docs/testing/full-test-guide.md`
 - Release guide: `docs/release/release-guide.md`
@@ -57,4 +61,6 @@ Personal Input Analytics System for Rime/Fcitx5 input capture, analytics, lexico
 - Recommended operator path:
   - `npm run demo -- --scenario normal-day --preset last-7-days`
   - `npm run demo:empty`
+  - `npm run web`
+  - `npm run web:build`
   - `npm run release:check`
