@@ -4,6 +4,8 @@ import type {
 } from "../../../../packages/contracts/src/index";
 import type { DashboardPageKey } from "../../../../packages/dashboard/src/index";
 
+export type DashboardShellPageKey = DashboardPageKey | "lexicon";
+
 export interface ScenarioOption {
   id: string;
   label: string;
@@ -26,7 +28,7 @@ export interface DashboardSelectionState {
   hideTermsInReport: boolean;
   forceMaskedContent: boolean;
   lexiconCategory: LexiconFilterCategory;
-  activePage: DashboardPageKey;
+  activePage: DashboardShellPageKey;
 }
 
 export const scenarioOptions: ScenarioOption[] = [
@@ -76,7 +78,7 @@ export const lexiconCategoryOptions: LexiconCategoryOption[] = [
   { value: "noise", label: "噪声" }
 ];
 
-export const pageOptions: Array<{ key: DashboardPageKey; label: string }> = [
+export const pageOptions: Array<{ key: DashboardShellPageKey; label: string }> = [
   { key: "overview", label: "总览" },
   { key: "stats", label: "统计" },
   { key: "vocabulary", label: "词汇" },
