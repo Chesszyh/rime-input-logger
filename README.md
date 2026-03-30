@@ -43,7 +43,9 @@ Personal Input Analytics System for Rime/Fcitx5 input capture, analytics, lexico
 - Demo entry: `apps/demo/src/index.ts`
 - Demo config parsing: `apps/demo/src/config.ts`
 - Demo playbook: `docs/demo/demo-playbook.md`
+- Full test guide: `docs/testing/full-test-guide.md`
 - Release guide: `docs/release/release-guide.md`
+- Final preflight checklist: `docs/release/final-preflight-checklist.md`
 - Integration log: `docs/integration/agent-g-integration-log.md`
 - Recommended operator path:
   - `npm run demo -- --scenario normal-day --preset last-7-days`

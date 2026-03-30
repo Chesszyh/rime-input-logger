@@ -15,5 +15,9 @@
     "apps/**/*.ts",
     "packages/**/*.ts",
     "tests/**/*.ts"
+  ],
+  "exclude": [
+    ".worktrees/**",
+    "dist/**"
   ]
 }
