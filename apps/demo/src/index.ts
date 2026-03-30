@@ -3,19 +3,32 @@ import {
   exportReportArtifact
 } from "../../../packages/dashboard/src/index";
 import { createServiceRegistry } from "../../../packages/services/src/index";
+import { parseDemoArgs } from "./config";
 
 const services = createServiceRegistry();
 
 const run = async (): Promise<void> => {
+  const config = parseDemoArgs(process.argv.slice(2));
+  const availableScenarios = await services.meta.listFixtureScenarios();
+
+  if (!availableScenarios.includes(config.scenarioId)) {
+    throw new Error(
+      `Unknown scenario: ${config.scenarioId}. Available scenarios: ${availableScenarios.join(", ")}`
+    );
+  }
+
   const bootstrap = await services.dashboard.getDashboardBootstrap({
-    preset: "last-7-days",
-    scenarioId: "normal-day"
+    preset: config.preset,
+    scenarioId: config.scenarioId
   });
 
-  const dashboard = buildDashboardExperience(bootstrap);
+  const dashboard = buildDashboardExperience(bootstrap, {
+    hideTermsInReport: config.hideTermsInReport,
+    forceMaskedContent: config.forceMaskedContent
+  });
   const exportedReport = exportReportArtifact(dashboard.pages.report, {
     format: "text",
-    hideTerms: true
+    hideTerms: config.hideTermsInReport
   });
 
   const lexiconOverview = await services.lexicon.getOverview({
@@ -38,6 +51,7 @@ const run = async (): Promise<void> => {
   console.log(
     JSON.stringify(
       {
+        demoConfig: config,
         scenarioId: bootstrap.scenarioId,
         navigation: dashboard.navigation,
         overview: {
@@ -77,4 +91,8 @@ const run = async (): Promise<void> => {
   );
 };
 
-void run();
+void run().catch((error: unknown) => {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error(`[demo] ${message}`);
+  process.exitCode = 1;
+});
