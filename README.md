@@ -19,6 +19,13 @@ Personal Input Analytics System for Rime/Fcitx5 input capture, analytics, lexico
 3. Run `npm run demo:empty` to inspect the first-run / no-data path.
 4. Run `npm run release:check` before publishing or merging release work.
 
+## Documentation
+
+- Docs index: `docs/README.md`
+- User guide: `docs/user-guide.md`
+- Developer guide: `docs/developer-guide.md`
+- FAQ: `docs/faq.md`
+
 ## Agent B analytics
 
 - Engine module: `packages/analytics/src/*`
