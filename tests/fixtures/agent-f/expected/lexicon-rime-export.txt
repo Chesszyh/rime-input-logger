@@ -1,0 +1,9 @@
+# Rime dictionary export
+# scenario: normal-day
+# generatedAt: 2026-03-30T11:23:05.402Z
+输入分析	18
+词库迁移	7
+共享契约	3
+临时噪声	2
+待清理词	1
+旧版术语	1

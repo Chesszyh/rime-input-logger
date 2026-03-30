@@ -1,0 +1,80 @@
+{
+  "scenarioId": "agent-f-ingestion-sample",
+  "timezone": "Asia/Shanghai",
+  "duplicateWindowSeconds": 2,
+  "settings": {
+    "recordingEnabled": true,
+    "paused": false,
+    "retention": {
+      "mode": "store-masked",
+      "retentionDays": 90,
+      "autoArchive": true,
+      "exportMaskingEnabled": true
+    },
+    "filterRules": [
+      {
+        "id": "rule-password-manager",
+        "type": "app",
+        "pattern": "com.bitwarden.desktop",
+        "enabled": true,
+        "reason": "sensitive app"
+      },
+      {
+        "id": "rule-secrets",
+        "type": "regex",
+        "pattern": "(token|密码|secret)",
+        "enabled": true,
+        "reason": "sensitive text"
+      }
+    ],
+    "stopWords": [
+      "的",
+      "了",
+      "是",
+      "我"
+    ],
+    "sessionGapSeconds": 600
+  },
+  "records": [
+    {
+      "id": "raw-001",
+      "occurredAt": "2026-03-30T23:58:00+08:00",
+      "appId": "md.obsidian",
+      "appName": "Obsidian",
+      "text": "会话开始",
+      "source": "rime"
+    },
+    {
+      "id": "raw-002",
+      "occurredAt": "2026-03-30T23:59:20+08:00",
+      "appId": "md.obsidian",
+      "appName": "Obsidian",
+      "text": "会话继续",
+      "source": "rime"
+    },
+    {
+      "id": "raw-003",
+      "occurredAt": "2026-03-31T00:03:00+08:00",
+      "appId": "md.obsidian",
+      "appName": "Obsidian",
+      "text": "跨日会话",
+      "source": "rime"
+    },
+    {
+      "id": "raw-004",
+      "occurredAt": "2026-03-31T00:03:01+08:00",
+      "appId": "md.obsidian",
+      "appName": "Obsidian",
+      "text": "跨日会话",
+      "source": "rime"
+    },
+    {
+      "id": "raw-005",
+      "occurredAt": "2026-03-31T00:10:00+08:00",
+      "appId": "md.obsidian",
+      "appName": "Obsidian",
+      "text": "跨日补充",
+      "source": "rime"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "scenarioId": "normal-day",
+  "request": {
+    "format": "json",
+    "maskContent": false
+  },
+  "output": {
+    "masked": true,
+    "exportedRecords": 5,
+    "sample": [
+      "[MASKED]",
+      "[MASKED]",
+      "[MASKED]",
+      "[MASKED]",
+      "[MASKED]"
+    ]
+  }
+}

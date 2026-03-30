@@ -1,0 +1,213 @@
+{
+  "scenarioId": "normal-day",
+  "overview": {
+    "range": {
+      "preset": "last-7-days",
+      "label": "近 7 天",
+      "timezone": "Asia/Shanghai",
+      "startAt": "2026-03-24T00:00:00+08:00",
+      "endAt": "2026-03-30T23:59:59+08:00"
+    },
+    "viewState": {
+      "code": "READY",
+      "title": "数据可用",
+      "description": "当前时间范围内有可展示的输入与分析结果。"
+    },
+    "metrics": [
+      {
+        "key": "input-chars",
+        "label": "输入字数",
+        "value": 53,
+        "unit": "字",
+        "delta": 1225,
+        "deltaLabel": "较上周期"
+      },
+      {
+        "key": "input-entries",
+        "label": "输入条数",
+        "value": 4,
+        "unit": "条"
+      },
+      {
+        "key": "active-days",
+        "label": "活跃天数",
+        "value": 1,
+        "unit": "天"
+      },
+      {
+        "key": "streak-days",
+        "label": "连续活跃",
+        "value": 1,
+        "unit": "天"
+      },
+      {
+        "key": "latest-input",
+        "label": "最近输入",
+        "value": "2026-03-30T22:28:00+08:00"
+      }
+    ],
+    "highlights": [
+      "当前范围输入 53 字，共 4 条。",
+      "活跃 1 天，连续活跃 1 天。",
+      "高频词：词库迁移（1 次）",
+      "会话 2 次，最长 1800 秒。"
+    ]
+  },
+  "vocabulary": {
+    "viewState": {
+      "code": "READY",
+      "title": "数据可用",
+      "description": "当前时间范围内有可展示的输入与分析结果。"
+    },
+    "topTerms": [
+      {
+        "term": "词库迁移",
+        "kind": "top",
+        "count": 1,
+        "share": 0.0625
+      },
+      {
+        "term": "共享契约",
+        "kind": "top",
+        "count": 1,
+        "share": 0.0625
+      },
+      {
+        "term": "输入分析",
+        "kind": "top",
+        "count": 1,
+        "share": 0.0625
+      }
+    ],
+    "phraseTerms": [
+      {
+        "term": "词库迁移结构",
+        "kind": "phrase",
+        "count": 1,
+        "share": 0.0625
+      },
+      {
+        "term": "共享契约稳定",
+        "kind": "phrase",
+        "count": 1,
+        "share": 0.0625
+      },
+      {
+        "term": "迁移结构导出",
+        "kind": "phrase",
+        "count": 1,
+        "share": 0.0625
+      }
+    ],
+    "fallingTerms": [
+      {
+        "term": "旧版",
+        "kind": "falling",
+        "count": 0,
+        "deltaFromPrevious": -1
+      },
+      {
+        "term": "旧版术语",
+        "kind": "falling",
+        "count": 0,
+        "deltaFromPrevious": -1
+      },
+      {
+        "term": "术语",
+        "kind": "falling",
+        "count": 0,
+        "deltaFromPrevious": -1
+      }
+    ]
+  },
+  "timeActivity": {
+    "viewState": {
+      "code": "READY",
+      "title": "数据可用",
+      "description": "当前时间范围内有可展示的输入与分析结果。"
+    },
+    "nonZeroHourlyBuckets": [
+      {
+        "hour": 9,
+        "chars": 24,
+        "entries": 2
+      },
+      {
+        "hour": 22,
+        "chars": 29,
+        "entries": 2
+      }
+    ],
+    "heatmap": [
+      {
+        "dateKey": "2026-03-30",
+        "bucketLabel": "08:00-09:59",
+        "chars": 24
+      },
+      {
+        "dateKey": "2026-03-30",
+        "bucketLabel": "22:00-23:59",
+        "chars": 29
+      }
+    ],
+    "sessions": {
+      "count": 2,
+      "averageDurationSeconds": 1200,
+      "longestDurationSeconds": 1800,
+      "focusSessionCount": 1
+    }
+  },
+  "governance": {
+    "viewState": {
+      "code": "READY",
+      "title": "数据可用",
+      "description": "当前时间范围内有可展示的输入与分析结果。"
+    },
+    "retention": {
+      "mode": "store-masked",
+      "retentionDays": 90,
+      "autoArchive": true,
+      "exportMaskingEnabled": true
+    },
+    "lastOperation": {
+      "requestId": "op-export-001",
+      "operation": "export-records",
+      "input": {
+        "scenarioId": "normal-day",
+        "format": "json"
+      },
+      "output": {
+        "exportedRecords": 4,
+        "masked": true
+      },
+      "success": true,
+      "errors": [],
+      "performedAt": "2026-03-30T17:00:00+08:00"
+    }
+  },
+  "report": {
+    "title": "近 7 天输入分析报告",
+    "summary": "当前范围输入 53 字，共 4 条。；活跃 1 天，连续活跃 1 天。；高频词：词库迁移（1 次）",
+    "sections": [
+      {
+        "id": "section-overview",
+        "kind": "overview",
+        "title": "总览",
+        "summary": "输入字数稳定增长，连续活跃 7 天。"
+      },
+      {
+        "id": "section-vocab",
+        "kind": "vocabulary",
+        "title": "词汇变化",
+        "summary": "共享契约与词库迁移成为新热点。"
+      },
+      {
+        "id": "section-time",
+        "kind": "time-activity",
+        "title": "时间分布",
+        "summary": "22:00 后是主要高峰时段。"
+      }
+    ],
+    "contentMasked": true
+  }
+}
