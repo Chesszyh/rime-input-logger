@@ -3,7 +3,7 @@
 import "../test/setup";
 import { describe, expect, it } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { App } from "../App";
+import { DemoApp as App } from "../DemoApp";
 
 describe("primary analytics pages", () => {
   it("renders overview, stats, vocabulary, and time pages for normal-day", async () => {

@@ -18,6 +18,8 @@ Run commands from the repository root:
 
 - `npm install`: install workspace dependencies.
 - `npm run web`: start the Vite dashboard development server.
+- `npm run web:start`: serve the built local dashboard on port 38761.
+- `npm run web:install-service`: install and start the systemd user service after `web:build`.
 - `npm run demo` / `npm run demo:empty`: exercise normal and empty-history scenarios.
 - `npm run build`: compile TypeScript into `dist/` with strict type checking.
 - `npm run web:build`: build the browser dashboard.

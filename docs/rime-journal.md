@@ -1,6 +1,6 @@
 # Rime 上屏日志
 
-本链路记录 Rime 最终提交到应用的文本，按天写入 JSONL（每行一个 JSON 对象），再用命令行查询事件和词频。Web Dashboard 和 `npm run demo` 使用合成场景，不读取这些真实日志。`wordcloud` 输出词频表和 JSON 数据，不生成图片。
+本链路记录 Rime 最终提交到应用的文本，按天写入 JSONL（每行一个 JSON 对象），再用命令行查询事件和词频。Web Dashboard 可读取同一目录的真实日志并展示每日输入与词云；`npm run demo` 使用合成场景。命令行 `wordcloud` 输出词频表和 JSON 数据。
 
 ## 环境与安装
 
@@ -14,6 +14,44 @@ Node.js 版本要求见 `package.json` 的 `engines`。运行测试还需要 Lua
 npm ci
 npm run rime:journal -- --help
 ```
+
+## 打开网页
+
+在仓库根目录运行 `npm run web`，打开终端显示的本地地址（默认 http://127.0.0.1:5173）。页面默认读取本机日志；通过“数据设置”填写自定义 **raw 目录**，留空使用下文的默认路径。自定义目录保存在当前浏览器，不会修改采集器配置。
+
+- **每日输入**：默认今天，按 Asia/Shanghai 日期切换；最新记录在前，可搜索、分批显示、导出所选日期全部事件 JSON。
+- **词云**：展示最多 20 个词及其真实次数，可展开明细、导出统计 JSON。词频沿用 CLI 的过滤与分词规则，因此分析词次与原始输入字符数不同。
+- **示例数据**：选择器可直接加载仓库合成日志，无需安装采集器；“数据设置”中另有原有分析演示入口。
+
+页面每 5 秒重新读取文件，也可以点击“刷新”；后台更新保留当前内容、搜索条件与阅读方式。网页只读取日志，不安装采集器，也不写入或删除日志。无日志时可跳到最近有记录的日期或打开配置。无效行会跳过并显示数量，词云导出包含错误位置。
+
+`npm run web:build` 生成前端文件；如需预览构建结果，运行 `npx vite preview --config apps/web-dashboard/vite.config.ts --host 127.0.0.1`。两种启动方式均提供本地日志接口。单独托管静态文件无法读取本机日志，长期运行与开机自启见下节。
+
+## 本地服务与开机自启
+
+```bash
+npm ci
+npm run web:build
+npm run web:start
+```
+
+本地服务默认仅监听 `http://127.0.0.1:38761`，使用构建后的网页。可通过 `RIME_WEB_PORT` 修改端口。Linux 安装 systemd 用户服务：
+
+```bash
+npm run web:install-service
+systemctl --user status rime-input-logger-web.service
+journalctl --user -u rime-input-logger-web.service -n 30
+```
+
+安装脚本使用当前仓库与 Node.js 的绝对路径生成本机 unit，不将该配置放入 Git。自定义端口时使用 `RIME_WEB_PORT=38762 npm run web:install-service`。用户服务默认随登录启动；若需登录前启动，运行 `loginctl enable-linger "$USER"`。可用 `loginctl show-user "$USER" -p Linger` 确认。
+
+更新代码后运行 `npm run web:build` 和 `systemctl --user restart rime-input-logger-web.service`。停止自启用 `systemctl --user disable --now rime-input-logger-web.service`。移动仓库或 Node.js 后重新运行安装命令。
+
+## 连续片段
+
+“每日输入”默认将相邻上屏拼接成连续片段。超过设定间隔（默认 15 秒，可选 5/30 秒）、跨天、输入方案变化或出现中文句末标点、问号、感叹号及换行时分段。文字按原样拼接，不补写英文或改写内容；切换“原始上屏”可逐条核对，JSON 导出始终保留原始事件。
+
+这是基于停顿的阅读辅助，不能恢复应用内删除、光标移动或窗口切换；15 秒是可调的产品默认值，不是经过个体校准的语言学阈值。英文漏记与可扩展采集能力见 [输入行为与采集边界](./input-behavior.md)。
 
 ## 先用合成日志验证命令
 

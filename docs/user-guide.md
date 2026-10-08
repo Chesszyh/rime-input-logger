@@ -14,7 +14,7 @@ Personal Input Analytics System 是一个面向 Rime/Fcitx5 输入场景的本�
 - 可直接运行的 demo CLI
 - 可直接在浏览器中查看的 Web Dashboard
 
-当前版本主要通过内置样例场景演示完整流程，方便在没有真实输入法采集环境的情况下验证产品主线。
+网页默认提供真实 Rime 日志的每日输入、词云与数据设置；安装与使用见 [Rime 上屏日志](./rime-journal.md#打开网页)。下文的场景、词库与报告功能属于“数据设置 → 打开分析演示”中的合成数据演示。
 同时，当前仓库已经提供 Fedora/Fcitx5/Rime 环境下的本地采集链路：Rime Lua 只记录最终上屏文本，并按天保存为 JSONL。
 
 ## 2. 你能用它做什么
@@ -56,13 +56,7 @@ npm install
 npm run web
 ```
 
-启动后，按终端输出打开本地地址，默认进入浏览器仪表盘。你可以在页面顶部直接切换：
-
-- `scenario`
-- `preset`
-- `lexicon category`
-- `hide terms in report`
-- `force masked content`
+启动后，默认显示本机日志的每日输入。通过侧栏打开词云或数据设置，顶部可切换日期和示例数据。完整步骤见 [打开网页](./rime-journal.md#打开网页)。原有场景、词库与报告演示位于“数据设置 → 打开分析演示”。
 
 如果你只想验证前端能否正常打包，运行：
 
@@ -309,7 +303,7 @@ npm run release:check
 
 - 当前主要依赖样例场景进行演示，不是完整的桌面 GUI 产品
 - 目前没有打包安装器
-- 真实输入法采集链路当前是 Rime Lua + CLI，没有托盘开关或 GUI 设置页
+- 真实输入法采集链路是 Rime Lua + CLI + 本地网页；网页可选择日志目录，采集器仍需手动安装，没有托盘开关
 - ASCII 模式直接透传的英文按键不保证被记录；推荐用 Rime 英文候选或中英混输提交英文
 - 一些 `docs/superpowers/**` 文档是研发过程资料，不是面向使用者的说明
 

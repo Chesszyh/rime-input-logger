@@ -3,7 +3,7 @@
 import "../test/setup";
 import { describe, expect, it } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { App } from "../App";
+import { DemoApp as App } from "../DemoApp";
 
 describe("web dashboard empty states", () => {
   it("keeps empty-history readable across overview and lexicon pages", async () => {

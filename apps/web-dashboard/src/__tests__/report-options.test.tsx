@@ -4,7 +4,7 @@ import "../test/setup";
 import { describe, expect, it } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { within } from "@testing-library/dom";
-import { App } from "../App";
+import { DemoApp as App } from "../DemoApp";
 
 describe("lexicon and report pages", () => {
   it("renders lexicon details and updates report preview when options change", async () => {

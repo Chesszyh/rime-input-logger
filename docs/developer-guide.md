@@ -11,7 +11,7 @@
 - `apps/`
   - `demo/`：CLI 演示入口
   - `rime-journal/`：真实 Rime JSONL 日志的词云/事件 CLI
-  - `web-dashboard/`：本地浏览器 Dashboard
+  - `web-dashboard/`：本地浏览器 Dashboard；`server/journal-api.ts` 通过 Vite 开发/预览中间件读取日志，`App.tsx` 展示日记，`DemoApp.tsx` 保留合成分析演示
 - `packages/`
   - `contracts/`：共享类型与页面数据契约
   - `mock-data/`：样例场景

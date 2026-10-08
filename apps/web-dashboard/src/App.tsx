@@ -1,292 +1,455 @@
-import { useEffect, useMemo, useState, startTransition } from "react";
-import { AppShell } from "./components/app-shell";
-import { EmptyStatePanel } from "./components/empty-state-panel";
-import { ErrorBanner } from "./components/error-banner";
-import { SectionCard } from "./components/section-card";
-import { SidebarNav, type SidebarNavItem } from "./components/sidebar-nav";
-import { StateBadge } from "./components/state-badge";
-import { TopbarControls } from "./components/topbar-controls";
-import {
-  defaultDashboardSelection,
-  pageOptions
-} from "./lib/app-config";
-import { loadDashboardWorkspace } from "./lib/dashboard-client";
-import { formatScenarioSummary } from "./lib/formatters";
-import { LexiconPage } from "./pages/lexicon-page";
-import { OverviewPage } from "./pages/overview-page";
-import { ReportPage } from "./pages/report-page";
-import { StatsPage } from "./pages/stats-page";
-import { TimePage } from "./pages/time-page";
-import { VocabularyPage } from "./pages/vocabulary-page";
-import type { DashboardPageKey } from "../../../packages/dashboard/src/index";
-import type { ViewStatusCode } from "../../../packages/contracts/src/index";
+import { lazy, Suspense, useEffect, useState } from "react";
+import type { JournalDashboardData } from "../server/journal-api";
+import { groupJournalEntries } from "../../../packages/rime-journal/src/segments";
+import { TagCloud } from "./components/tag-cloud";
+import "./styles/journal.css";
+
+const DemoApp = lazy(() =>
+  import("./DemoApp").then((module) => ({ default: module.DemoApp })),
+);
+type Page = "daily" | "cloud" | "settings";
+const pageNames: Record<Page, string> = {
+  daily: "每日输入",
+  cloud: "词云",
+  settings: "数据设置",
+};
+const time = (value: string) =>
+  new Date(value).toLocaleTimeString("zh-CN", {
+    timeZone: "Asia/Shanghai",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
 export const App = () => {
-  const [selection, setSelection] = useState(defaultDashboardSelection);
-  const [workspace, setWorkspace] = useState<Awaited<ReturnType<typeof loadDashboardWorkspace>> | null>(
-    null
+  const [page, setPage] = useState<Page>("daily");
+  const [source, setSource] = useState("local");
+  const [rawDir, setRawDir] = useState(
+    () => localStorage.getItem("rime-raw-dir") ?? "",
   );
-  const [error, setError] = useState<string | null>(null);
+  const [draftDir, setDraftDir] = useState(rawDir);
+  const [date, setDate] = useState("");
+  const [revision, setRevision] = useState(0);
+  const [data, setData] = useState<JournalDashboardData | null>(null);
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-
-  const {
-    scenarioId,
-    preset,
-    hideTermsInReport,
-    forceMaskedContent,
-    lexiconCategory
-  } = selection;
+  const [query, setQuery] = useState("");
+  const [visibleCount, setVisibleCount] = useState(50);
+  const [grouped, setGrouped] = useState(true);
+  const [gapSeconds, setGapSeconds] = useState(15);
+  const [demo, setDemo] = useState(false);
 
   useEffect(() => {
-    let cancelled = false;
-
-    setLoading(true);
-    setError(null);
-
-    loadDashboardWorkspace({
-      scenarioId,
-      preset,
-      hideTermsInReport,
-      forceMaskedContent,
-      lexiconCategory
-    })
-      .then((nextWorkspace) => {
-        if (cancelled) {
-          return;
+    const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout>;
+    const refresh = async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams({ source, rawDir, date });
+        const response = await fetch(`/api/journal?${params}`, {
+          signal: controller.signal,
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "读取失败");
+        if (!controller.signal.aborted) {
+          setData(result as JournalDashboardData);
+          setError("");
         }
-
-        setWorkspace(nextWorkspace);
-      })
-      .catch((nextError: unknown) => {
-        if (cancelled) {
-          return;
-        }
-
-        const message = nextError instanceof Error ? nextError.message : String(nextError);
-        setError(message);
-        setWorkspace(null);
-      })
-      .finally(() => {
-        if (!cancelled) {
+      } catch (reason) {
+        if (!controller.signal.aborted)
+          setError(reason instanceof Error ? reason.message : String(reason));
+      } finally {
+        if (!controller.signal.aborted) {
           setLoading(false);
+          timer = setTimeout(() => {
+            void refresh();
+          }, 5000);
         }
-      });
-
-    return () => {
-      cancelled = true;
+      }
     };
-  }, [forceMaskedContent, hideTermsInReport, lexiconCategory, preset, scenarioId]);
+    void refresh();
+    return () => {
+      controller.abort();
+      clearTimeout(timer);
+    };
+  }, [source, rawDir, date, revision]);
 
-  const updateSelection = <Key extends keyof typeof selection>(
-    key: Key,
-    value: (typeof selection)[Key]
-  ) => {
-    startTransition(() => {
-      setSelection((current) => ({
-        ...current,
-        [key]: value
-      }));
-    });
+  useEffect(() => {
+    setData(null);
+    setError("");
+  }, [source, rawDir, date]);
+
+  useEffect(() => {
+    setVisibleCount(50);
+    setQuery("");
+  }, [source, date, rawDir]);
+
+  const changeSource = (value: string) => {
+    setSource(value);
+    setDate("");
+  };
+  const entries = data?.events.entries ?? [];
+  const displayEntries = grouped
+    ? groupJournalEntries(entries, gapSeconds)
+    : entries;
+  const filtered = [...displayEntries]
+    .reverse()
+    .filter((entry) =>
+      entry.text.toLocaleLowerCase().includes(query.toLocaleLowerCase()),
+    );
+  const exportJson = () => {
+    if (!data) return;
+    const blob = new Blob(
+      [JSON.stringify(page === "cloud" ? data.report : data.events, null, 2)],
+      { type: "application/json" },
+    );
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `rime-${page}-${data.date}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
-  const navigationItems: SidebarNavItem[] = useMemo(
-    () =>
-      pageOptions.map((page) => {
-        if (page.key === "lexicon") {
-          return {
-            key: page.key,
-            label: page.label,
-            description: "词条、分类、收藏和导出预览",
-            stateCode:
-              loading || !workspace
-                ? "LOADING"
-                : workspace.lexicon.overview.totalEntries > 0
-                  ? "READY"
-                  : "NO_DATA"
-          };
-        }
-
-        const stateCode =
-          loading || !workspace
-            ? "LOADING"
-            : workspace.dashboard.pages[page.key as DashboardPageKey]?.state.code ?? "ERROR";
-
-        const descriptionByPage: Record<DashboardPageKey, string> = {
-          overview: "仪表盘总览与关键摘要",
-          stats: "趋势、会话和活跃度",
-          vocabulary: "高频词、新词和变化",
-          time: "时段分布与热力概览",
-          report: "报告模板与导出预览"
-        };
-
-        return {
-          key: page.key,
-          label: page.label,
-          description: descriptionByPage[page.key as DashboardPageKey],
-          stateCode
-        };
-      }),
-    [loading, workspace]
-  );
-
-  const activePageLabel =
-    pageOptions.find((page) => page.key === selection.activePage)?.label ?? selection.activePage;
-
-  const activePageState: ViewStatusCode | "LOADING" = (() => {
-    if (loading) {
-      return "LOADING";
-    }
-
-    if (!workspace) {
-      return "ERROR";
-    }
-
-    if (selection.activePage === "lexicon") {
-      return workspace.lexicon.overview.totalEntries > 0 ? "READY" : "NO_DATA";
-    }
-
-    return workspace.dashboard.pages[selection.activePage]?.state.code ?? "ERROR";
-  })();
-
-  const activePageCopy =
-    selection.activePage === "lexicon"
-      ? workspace
-        ? `词库总量 ${workspace.lexicon.overview.totalEntries} 条，当前分类为 ${workspace.lexicon.selectedCategoryLabel}。`
-        : "正在加载词库数据..."
-      : workspace?.dashboard.pages[selection.activePage]?.emptyCopy ?? "正在加载数据...";
-
-  const shellScenarioSummary =
-    workspace?.selection.scenarioSummary ?? formatScenarioSummary(scenarioId, preset);
-
-  const activePageContent = (() => {
-    if (!workspace) {
-      return null;
-    }
-
-    switch (selection.activePage) {
-      case "overview":
-        return <OverviewPage page={workspace.dashboard.pages.overview} />;
-      case "stats":
-        return <StatsPage page={workspace.dashboard.pages.stats} />;
-      case "vocabulary":
-        return <VocabularyPage page={workspace.dashboard.pages.vocabulary} />;
-      case "time":
-        return <TimePage page={workspace.dashboard.pages.time} />;
-      case "lexicon":
-        return <LexiconPage lexicon={workspace.lexicon} />;
-      case "report":
-        return <ReportPage report={workspace.report} />;
-      default:
-        return (
-          <SectionCard
-            eyebrow="Pending"
-            title={activePageLabel}
-            description="该页面会在后续任务中补齐。当前先保留只读占位。"
-          >
-            <div className="dashboard-main__metrics">
-              <div>
-                <span className="dashboard-main__metric-label">Total entries</span>
-                <strong>{workspace.lexicon.overview.totalEntries}</strong>
-              </div>
-              <div>
-                <span className="dashboard-main__metric-label">Selected category</span>
-                <strong>{workspace.lexicon.selectedCategoryLabel}</strong>
-              </div>
-              <div>
-                <span className="dashboard-main__metric-label">Report template</span>
-                <strong>{workspace.report.selectedTemplateTitle}</strong>
-              </div>
-            </div>
-          </SectionCard>
-        );
-    }
-  })();
+  if (demo)
+    return (
+      <>
+        <button className="journal-demo-back" onClick={() => setDemo(false)}>
+          ← 返回输入日记
+        </button>
+        <Suspense fallback={<p>正在加载演示…</p>}>
+          <DemoApp />
+        </Suspense>
+      </>
+    );
 
   return (
-    <AppShell
-      sidebar={
-        <SidebarNav
-          items={navigationItems}
-          activeKey={selection.activePage}
-          onSelect={(page) => updateSelection("activePage", page as typeof selection.activePage)}
-          scenarioSummary={shellScenarioSummary}
-          rangeLabel={workspace?.selection.rangeLabel ?? "..."}
-          currentStateCode={activePageState}
-        />
-      }
-      topbar={
-        <TopbarControls
-          scenarioId={selection.scenarioId}
-          preset={selection.preset}
-          lexiconCategory={selection.lexiconCategory}
-          hideTermsInReport={selection.hideTermsInReport}
-          forceMaskedContent={selection.forceMaskedContent}
-          rangeLabel={workspace?.selection.rangeLabel ?? "..."}
-          activePageLabel={activePageLabel}
-          activeStateCode={activePageState}
-          activeStateCopy={activePageCopy}
-          onScenarioChange={(value) => updateSelection("scenarioId", value)}
-          onPresetChange={(value) => updateSelection("preset", value)}
-          onLexiconCategoryChange={(value) => updateSelection("lexiconCategory", value)}
-          onHideTermsInReportChange={(value) => updateSelection("hideTermsInReport", value)}
-          onForceMaskedContentChange={(value) => updateSelection("forceMaskedContent", value)}
-        />
-      }
-    >
-      <main className="dashboard-main" aria-label="Active page region">
-        {error ? (
-          <ErrorBanner
-            title="Workspace load failed"
-            message={error}
-          >
-            <p>{shellScenarioSummary}</p>
-          </ErrorBanner>
-        ) : null}
-
-        {!workspace && !error ? (
-          <EmptyStatePanel
-            title="正在加载工作区"
-            description="Shell 已经就绪，数据层正在拉取当前场景、时间范围和词库概览。"
-          >
-            <StateBadge code="LOADING" />
-          </EmptyStatePanel>
-        ) : null}
-
-        {workspace ? (
-          <>
-            <SectionCard
-              eyebrow="Active page"
-              title={activePageLabel}
-              description={activePageCopy}
-              badge={<StateBadge code={activePageState} />}
+    <div className="journal-shell">
+      <aside className="journal-sidebar">
+        <a className="journal-brand" href="/">
+          R
+          <span>
+            RIME JOURNAL<small>输入日记</small>
+          </span>
+        </a>
+        <nav aria-label="主导航">
+          {(Object.keys(pageNames) as Page[]).map((key, index) => (
+            <button
+              key={key}
+              aria-current={page === key ? "page" : undefined}
+              onClick={() => setPage(key)}
             >
-              <div className="dashboard-main__summary">
-                <p>
-                  <span>Scenario</span>
-                  <strong>{workspace.selection.scenarioSummary}</strong>
-                </p>
-                <p>
-                  <span>Range</span>
-                  <strong>{workspace.selection.rangeLabel}</strong>
-                </p>
-                <p>
-                  <span>Current status</span>
-                  <strong>{activePageState}</strong>
-                </p>
-              </div>
-            </SectionCard>
-
-            {activePageContent}
-
-            {activePageState === "NO_DATA" || activePageState === "EMPTY_RESULT" ? (
-              <EmptyStatePanel
-                title="当前页面暂无可展示数据"
-                description={activePageCopy}
+              <span>0{index + 1}</span>
+              {pageNames[key]}
+            </button>
+          ))}
+        </nav>
+        <div className="journal-source">
+          <span className="journal-dot" />
+          {source === "example" ? "示例数据" : "本机日志"}
+          <small>仅在本机读取与分析</small>
+        </div>
+      </aside>
+      <main className="journal-main">
+        <header className="journal-header">
+          <div>
+            <p className="journal-kicker">你的文字，日积月累</p>
+            <h1>{pageNames[page]}</h1>
+          </div>
+          <button
+            onClick={() => setRevision((value) => value + 1)}
+            disabled={loading}
+          >
+            {loading ? "读取中…" : "刷新"}
+          </button>
+        </header>
+        {page !== "settings" && (
+          <div className="journal-toolbar">
+            <label>
+              日期
+              <input
+                aria-label="日期"
+                type="date"
+                value={date || data?.date || ""}
+                onChange={(event) => setDate(event.target.value)}
               />
-            ) : null}
-          </>
-        ) : null}
+            </label>
+            <button
+              onClick={() => {
+                setDate("");
+                if (source === "example") changeSource("local");
+              }}
+            >
+              今天
+            </button>
+            <label>
+              数据源
+              <select
+                value={source}
+                onChange={(event) => changeSource(event.target.value)}
+              >
+                <option value="local">本机日志</option>
+                <option value="example">示例数据</option>
+              </select>
+            </label>
+            <button onClick={exportJson} disabled={!data}>
+              导出 JSON
+            </button>
+          </div>
+        )}
+        {error && (
+          <div className="journal-notice" role="alert">
+            <strong>无法读取日志</strong>
+            <p>{error}</p>
+            <button onClick={() => setPage("settings")}>检查数据目录</button>
+          </div>
+        )}
+        {loading && !data && <p role="status">正在读取日志…</p>}
+        {page === "settings" ? (
+          <section className="journal-card journal-settings">
+            <h2>连接你的输入记录</h2>
+            <p>
+              填写采集器写入的 raw 目录。留空使用默认目录或 RIME_COMMIT_LOG_ROOT
+              指定的目录。
+            </p>
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                const value = draftDir.trim();
+                localStorage.setItem("rime-raw-dir", value);
+                setRawDir(value);
+                changeSource("local");
+                setRevision((n) => n + 1);
+              }}
+            >
+              <label>
+                日志目录
+                <input
+                  placeholder="留空使用默认目录"
+                  value={draftDir}
+                  onChange={(event) => setDraftDir(event.target.value)}
+                />
+              </label>
+              <button type="submit">保存并读取</button>
+            </form>
+            {data && (
+              <dl>
+                <dt>当前目录</dt>
+                <dd>{data.rawDir}</dd>
+                <dt>读取状态</dt>
+                <dd>
+                  {data.exists
+                    ? `找到 ${data.dates.length} 天的日志`
+                    : "目录尚不存在"}
+                </dd>
+                <dt>日期时区</dt>
+                <dd>Asia/Shanghai（UTC+8）</dd>
+              </dl>
+            )}
+            <h2>还没有日志？</h2>
+            <p>
+              先体验示例，再按照仓库 docs/rime-journal.md 安装 Lua
+              采集器并重新部署 Rime。安装后上屏一句文字，回到这里刷新。
+            </p>
+            <div className="journal-actions">
+              <button
+                onClick={() => {
+                  changeSource("example");
+                  setPage("daily");
+                }}
+              >
+                查看示例日记
+              </button>
+              <button onClick={() => setDemo(true)}>打开分析演示</button>
+            </div>
+          </section>
+        ) : (
+          data && (
+            <>
+              <div className="journal-metrics">
+                <section>
+                  <span>上屏次数</span>
+                  <strong>{entries.length.toLocaleString()}</strong>
+                  <small>所选日期的原始记录</small>
+                </section>
+                <section>
+                  <span>输入字符</span>
+                  <strong>
+                    {entries
+                      .reduce((sum, entry) => sum + entry.charCount, 0)
+                      .toLocaleString()}
+                  </strong>
+                  <small>按采集器记录计数</small>
+                </section>
+                <section>
+                  <span>分析词次</span>
+                  <strong>{data.report.totals.tokens.toLocaleString()}</strong>
+                  <small>过滤后用于词频统计</small>
+                </section>
+              </div>
+              {data.report.source.parseErrors.length > 0 && (
+                <p className="journal-notice" role="status">
+                  跳过 {data.report.source.parseErrors.length}{" "}
+                  行无效日志（包含对照期）；导出词云 JSON 可查看错误位置。
+                </p>
+              )}
+              {entries.length === 0 ? (
+                <section className="journal-card journal-empty">
+                  <span>✎</span>
+                  <h2>
+                    {data.exists
+                      ? "这一天还没有输入记录"
+                      : "开始记录你的第一句话"}
+                  </h2>
+                  <p>
+                    {data.exists
+                      ? "选择已有日志的日期，或输入文字后刷新。"
+                      : "连接日志目录，或先用示例体验每日输入和词云。"}
+                  </p>
+                  <div className="journal-actions">
+                    <button onClick={() => setPage("settings")}>
+                      设置数据目录
+                    </button>
+                    <button onClick={() => changeSource("example")}>
+                      体验示例数据
+                    </button>
+                    {data.dates[0] && (
+                      <button onClick={() => setDate(data.dates[0])}>
+                        查看最近有记录的一天
+                      </button>
+                    )}
+                  </div>
+                </section>
+              ) : page === "daily" ? (
+                <section className="journal-card">
+                  <div className="journal-section-head">
+                    <h2>{grouped ? "连续片段" : "输入时间线"}</h2>
+                    <span>
+                      最新在前 · {time(entries[entries.length - 1].occurredAt)}{" "}
+                      最后记录
+                    </span>
+                  </div>
+                  <div className="journal-toolbar">
+                    <label>
+                      阅读方式
+                      <select
+                        value={grouped ? "grouped" : "raw"}
+                        onChange={(event) => {
+                          setGrouped(event.target.value === "grouped");
+                          setVisibleCount(50);
+                        }}
+                      >
+                        <option value="grouped">连续片段</option>
+                        <option value="raw">原始上屏</option>
+                      </select>
+                    </label>
+                    {grouped && (
+                      <label>
+                        断开间隔
+                        <select
+                          value={gapSeconds}
+                          onChange={(event) => {
+                            setGapSeconds(Number(event.target.value));
+                            setVisibleCount(50);
+                          }}
+                        >
+                          <option value={5}>5 秒</option>
+                          <option value={15}>15 秒</option>
+                          <option value={30}>30 秒</option>
+                        </select>
+                      </label>
+                    )}
+                  </div>
+                  {grouped && (
+                    <p className="journal-group-note">
+                      按停顿与句末标点拼接；未还原应用内的删除和光标移动。导出保留原始记录。
+                    </p>
+                  )}
+                  <input
+                    className="journal-search"
+                    aria-label="搜索输入"
+                    placeholder="搜索这一天的文字"
+                    value={query}
+                    onChange={(event) => {
+                      setQuery(event.target.value);
+                      setVisibleCount(50);
+                    }}
+                  />
+                  <ol className="journal-timeline">
+                    {filtered.slice(0, visibleCount).map((entry, index) => (
+                      <li key={`${entry.occurredAt}-${index}`}>
+                        <time>{time(entry.occurredAt)}</time>
+                        <div>
+                          <p>{entry.text}</p>
+                          <small>
+                            {entry.schemaId} · {entry.charCount} 字符
+                            {"entries" in entry
+                              ? ` · ${entry.entries.length} 次上屏`
+                              : ""}
+                          </small>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                  {filtered.length === 0 && <p>没有匹配的输入。</p>}
+                  {filtered.length > visibleCount && (
+                    <button onClick={() => setVisibleCount((n) => n + 50)}>
+                      再显示 50 条（剩余 {filtered.length - visibleCount} 条）
+                    </button>
+                  )}
+                </section>
+              ) : (
+                <section className="journal-card journal-cloud">
+                  <div className="journal-section-head">
+                    <h2>这一天的关键词</h2>
+                    <span>最多 20 个词 · 大小表示出现次数</span>
+                  </div>
+                  {data.report.wordCloud.length > 0 ? (
+                    <>
+                      <TagCloud
+                        title="词频云"
+                        points={data.report.wordCloud.map((point) => ({
+                          label: point.term,
+                          value: point.count,
+                        }))}
+                      />
+                      <details>
+                        <summary>查看词频明细</summary>
+                        <table>
+                          <thead>
+                            <tr>
+                              <th>词语</th>
+                              <th>次数</th>
+                              <th>占比</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {data.report.wordCloud.map((point) => (
+                              <tr key={point.term}>
+                                <td>{point.term}</td>
+                                <td>{point.count}</td>
+                                <td>{(point.share * 100).toFixed(1)}%</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </details>
+                    </>
+                  ) : (
+                    <p>过滤后没有可统计的词语。可在每日输入查看原始记录。</p>
+                  )}
+                </section>
+              )}
+              <footer className="journal-footer">
+                {source === "example" ? "合成示例" : "本机日志"} · {data.date} ·
+                UTC+8
+                <span>
+                  每 5 秒刷新 · 读取于 {time(data.events.generatedAt)}
+                </span>
+              </footer>
+            </>
+          )
+        )}
       </main>
-    </AppShell>
+    </div>
   );
 };

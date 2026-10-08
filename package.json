@@ -18,7 +18,9 @@
     "release:check": "npm run test && npm run build && npm run web:build && npm run demo -- --scenario normal-day --preset last-7-days >/dev/null",
     "test": "vitest run",
     "test:agent-f": "vitest run tests/agentF.regression.test.ts tests/agentF.snapshots.test.ts",
-    "test:rime": "vitest run tests/rimeJournal.test.ts tests/rimeCapture.test.ts tests/rimeCli.test.ts"
+    "test:rime": "vitest run tests/rimeJournal.test.ts tests/rimeCapture.test.ts tests/rimeCli.test.ts",
+    "web:start": "tsx apps/web-dashboard/server/serve.ts",
+    "web:install-service": "python3 scripts/install-web-service.py"
   },
   "dependencies": {
     "react": "^19.1.0",

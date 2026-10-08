@@ -4,7 +4,7 @@ import "../test/setup";
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { within } from "@testing-library/dom";
-import { App } from "../App";
+import { DemoApp as App } from "../DemoApp";
 
 describe("dashboard shell", () => {
   it("renders the app shell navigation and top controls", async () => {

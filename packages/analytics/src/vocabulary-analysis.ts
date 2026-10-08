@@ -294,8 +294,11 @@ const extractVocabulary = (
     }
 
     if (rawTokens.length <= 2) {
+      const countedTerms = new Set(termTokens.map(normalizeTerm));
       phraseTokens.forEach((phrase) => {
-        pushCount(terms, phrase, event);
+        if (!countedTerms.has(normalizeTerm(phrase))) {
+          pushCount(terms, phrase, event);
+        }
       });
     }
   }
