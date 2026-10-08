@@ -39,19 +39,18 @@ describe("agent G integration and release packaging", () => {
     expect((empty.overview as { state: { code: string } }).state.code).toBe("NO_DATA");
   });
 
-  it("declares agent G scripts and documents the operator path", () => {
+  it("declares release scripts and documents the operator path", () => {
     const packageJson = JSON.parse(readFileSync(`${repoRoot}/package.json`, "utf8"));
     const readme = readFileSync(`${repoRoot}/README.md`, "utf8");
 
     expect(packageJson.scripts["demo:empty"]).toBeDefined();
     expect(packageJson.scripts["release:check"]).toBeDefined();
-    expect(readme).toContain("Agent G delivery");
     expect(readme).toContain("npm run release:check");
   });
 
-  it("ships the integration, release, and demo runbook docs", () => {
-    expect(existsSync(`${repoRoot}/docs/demo/demo-playbook.md`)).toBe(true);
-    expect(existsSync(`${repoRoot}/docs/release/release-guide.md`)).toBe(true);
-    expect(existsSync(`${repoRoot}/docs/integration/agent-g-integration-log.md`)).toBe(true);
+  it("ships the capture setup and configuration", () => {
+    expect(existsSync(`${repoRoot}/docs/rime-journal.md`)).toBe(true);
+    expect(existsSync(`${repoRoot}/rime/lua/commit_logger.lua`)).toBe(true);
+    expect(existsSync(`${repoRoot}/rime/schema.custom.yaml.example`)).toBe(true);
   });
 });

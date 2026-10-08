@@ -11,12 +11,14 @@
     "build": "tsc -p tsconfig.json",
     "demo": "tsx apps/demo/src/index.ts",
     "demo:empty": "tsx apps/demo/src/index.ts --scenario empty-history --preset today",
+    "rime:journal": "tsx apps/rime-journal/src/index.ts",
     "test:web": "vitest run apps/web-dashboard/src/__tests__",
     "web": "vite --config apps/web-dashboard/vite.config.ts",
     "web:build": "vite build --config apps/web-dashboard/vite.config.ts",
     "release:check": "npm run test && npm run build && npm run web:build && npm run demo -- --scenario normal-day --preset last-7-days >/dev/null",
     "test": "vitest run",
-    "test:agent-f": "vitest run tests/agentF.regression.test.ts tests/agentF.snapshots.test.ts"
+    "test:agent-f": "vitest run tests/agentF.regression.test.ts tests/agentF.snapshots.test.ts",
+    "test:rime": "vitest run tests/rimeJournal.test.ts tests/rimeCapture.test.ts tests/rimeCli.test.ts"
   },
   "dependencies": {
     "react": "^19.1.0",
@@ -34,5 +36,9 @@
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
   }
 }

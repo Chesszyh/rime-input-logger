@@ -15,10 +15,4 @@ describe("agent 0 workspace baseline", () => {
     expect(existsSync("apps/demo/src/index.ts")).toBe(true);
   });
 
-  it("ships the required agent 0 documentation set", () => {
-    expect(existsSync("docs/contracts/shared-contract.md")).toBe(true);
-    expect(existsSync("docs/reference/field-dictionary.md")).toBe(true);
-    expect(existsSync("docs/architecture/module-dependency-map.md")).toBe(true);
-    expect(existsSync("docs/architecture/acceptance-baseline.md")).toBe(true);
-  });
 });

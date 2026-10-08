@@ -1,0 +1,4 @@
+patch:
+  "engine/processors/@before 0": lua_processor@*commit_logger
+  "commit_logger/root": "~/.local/share/personal-input-analytics"
+  "commit_logger/debug": false

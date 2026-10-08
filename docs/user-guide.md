@@ -15,11 +15,14 @@ Personal Input Analytics System 是一个面向 Rime/Fcitx5 输入场景的本�
 - 可直接在浏览器中查看的 Web Dashboard
 
 当前版本主要通过内置样例场景演示完整流程，方便在没有真实输入法采集环境的情况下验证产品主线。
+同时，当前仓库已经提供 Fedora/Fcitx5/Rime 环境下的本地采集链路：Rime Lua 只记录最终上屏文本，并按天保存为 JSONL。
 
 ## 2. 你能用它做什么
 
 你可以用这个项目：
 
+- 捕获 Rime/rime-ice 最终提交到应用的文本
+- 按天保存原始输入日志，供人类阅读、脚本处理或交给 LLM 分析
 - 查看一段时间内的输入量、活跃天数、连续活跃天数等指标
 - 查看高频词、新词、热词变化和短语词
 - 查看活跃时段、热力图和会话统计
@@ -29,11 +32,13 @@ Personal Input Analytics System 是一个面向 Rime/Fcitx5 输入场景的本�
 
 ## 3. 环境要求
 
-- Node.js 18+ 或更高版本
+- Node.js 版本满足 `package.json` 的 `engines`
 - `npm`
 - 支持 TypeScript ESM 的本地开发环境
 
 如果只是体验 demo，不需要安装 Rime/Fcitx5，也不需要真实输入数据。
+如果要采集真实 Rime 输入，需要 Fcitx5 Rime 能加载当前配置目录下的 Lua 脚本。
+Fedora 上需要安装 `librime-lua`，仅安装 `fcitx5-lua` 不够。
 
 ## 4. 安装
 
@@ -64,6 +69,10 @@ npm run web
 ```bash
 npm run web:build
 ```
+
+### 4.2 启用真实 Rime 输入采集
+
+按照 [Rime 上屏日志](./rime-journal.md) 安装仓库内的采集器与 schema 补丁，验证日志后再运行查询命令。该指南统一说明路径配置、时间范围、停用方法和排查步骤。
 
 ## 5. 最短上手路径
 
@@ -99,6 +108,18 @@ npm run demo:empty
 
 这个命令会加载 `empty-history` 场景，适合验证“首次使用 / 暂无数据”的产品状态。
 
+### 5.3 查看今天的 Rime 词云
+
+```bash
+npm run rime:journal -- wordcloud --preset today
+```
+
+### 5.4 查看某一天的原始上屏事件
+
+```bash
+npm run rime:journal -- events --date 2026-06-08
+```
+
 ## 6. 常用场景
 
 ### 普通使用场景
@@ -132,6 +153,34 @@ npm run demo -- --scenario empty-history --preset today
 ```
 
 适合验证无数据状态、首次引导和空页面提示。
+
+### 每日词云
+
+```bash
+npm run rime:journal -- wordcloud --date 2026-06-08
+```
+
+### 每周词云
+
+按 ISO 周统计，`2026-W24` 表示 2026 年第 24 周：
+
+```bash
+npm run rime:journal -- wordcloud --week 2026-W24
+```
+
+### 近 7 天词云
+
+```bash
+npm run rime:journal -- wordcloud --preset last-7-days
+```
+
+### JSON 输出
+
+如果后续要交给其他程序或 LLM 流水线处理：
+
+```bash
+npm run rime:journal -- wordcloud --preset today --format json
+```
 
 ## 7. 如何理解输出
 
@@ -219,6 +268,9 @@ npm run demo -- --scenario empty-history --preset today
 - 安装依赖：`npm install`
 - 运行主线 demo：`npm run demo`
 - 运行空数据 demo：`npm run demo:empty`
+- 查看 Rime 今日词云：`npm run rime:journal -- wordcloud --preset today`
+- 查看 Rime 每周词云：`npm run rime:journal -- wordcloud --week 2026-W24`
+- 查看某日上屏事件：`npm run rime:journal -- events --date 2026-06-08`
 - 启动浏览器 Dashboard：`npm run web`
 - 构建浏览器 Dashboard：`npm run web:build`
 - 运行 Agent F 回归测试：`npm run test:agent-f`
@@ -235,6 +287,8 @@ npm run demo -- --scenario empty-history --preset today
 3. `npm test` 通过
 4. `npm run build` 通过
 5. `npm run web:build` 通过
+
+真实采集链路的自动测试与输入法验收步骤见 [Rime 上屏日志](./rime-journal.md#开发验证)。
 
 如果你准备做发布前确认，再额外运行：
 
@@ -255,7 +309,8 @@ npm run release:check
 
 - 当前主要依赖样例场景进行演示，不是完整的桌面 GUI 产品
 - 目前没有打包安装器
-- 真实输入法采集链路的系统级集成仍需要后续工程化落地
+- 真实输入法采集链路当前是 Rime Lua + CLI，没有托盘开关或 GUI 设置页
+- ASCII 模式直接透传的英文按键不保证被记录；推荐用 Rime 英文候选或中英混输提交英文
 - 一些 `docs/superpowers/**` 文档是研发过程资料，不是面向使用者的说明
 
 ## 12. 下一步该看什么

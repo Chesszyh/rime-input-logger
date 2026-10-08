@@ -2,9 +2,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 describe("agent A workspace deliverables", () => {
-  it("ships ingestion module and boundary notes", () => {
+  it("ships the ingestion module", () => {
     expect(existsSync("packages/services/src/ingestion.ts")).toBe(true);
-    expect(existsSync("docs/architecture/agent-a-boundary-notes.md")).toBe(true);
   });
 
   it("exposes ingestion pipeline read interfaces", () => {

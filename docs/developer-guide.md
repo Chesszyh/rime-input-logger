@@ -10,6 +10,7 @@
 
 - `apps/`
   - `demo/`：CLI 演示入口
+  - `rime-journal/`：真实 Rime JSONL 日志的词云/事件 CLI
   - `web-dashboard/`：本地浏览器 Dashboard
 - `packages/`
   - `contracts/`：共享类型与页面数据契约
@@ -17,6 +18,7 @@
   - `services/`：面向页面和 demo 的聚合服务层
   - `analytics/`：统计、词汇、时段等分析引擎
   - `dashboard/`：Dashboard 与报告装配逻辑
+  - `rime-journal/`：Rime commit JSONL 读取、校验、转换和词云报告
 - `tests/`
   - 各 Agent 交付的测试文件与 fixture
 - `docs/`
@@ -79,6 +81,18 @@ Agent B 的核心交付主要在这里。
 
 负责把统计、词汇、时段、治理和报告内容组织成可展示的结构。
 
+### `packages/rime-journal`
+
+负责真实 Rime commit 日志的本地读取和分析。主要边界：
+
+- 默认读取 `~/.local/share/personal-input-analytics/raw/*.jsonl`
+- 将 `RimeCommitJournalEntry` 转换为现有 `RawInputRecord`
+- 复用 `services/ingestion` 和 `analytics/vocabulary-analysis`
+- 提供 Markdown 与 JSON 两类输出格式
+
+Rime 侧写入逻辑不在 TypeScript 包里，而在仓库的 `rime/lua/commit_logger.lua`，部署方式见 [Rime 上屏日志](./rime-journal.md)。
+Rime Lua 组件依赖 `librime-lua`。如果启动日志出现 `error creating processor: 'lua_processor'` 或 `error creating filter: 'lua_filter'`，优先检查该包是否安装以及 `/usr/lib64/rime-plugins/librime-lua.so` 是否存在。
+
 ### `apps/demo`
 
 CLI 入口，负责解析命令参数并打印 JSON 结果。
@@ -89,6 +103,16 @@ CLI 入口，负责解析命令参数并打印 JSON 结果。
 - `--preset`
 - `--show-terms`
 - `--unmasked`
+
+### `apps/rime-journal`
+
+真实输入日志 CLI，常用命令：
+
+```bash
+npm run rime:journal -- wordcloud --preset today
+npm run rime:journal -- wordcloud --week 2026-W24
+npm run rime:journal -- events --date 2026-06-08
+```
 
 ## 3. 主要开发命令
 
@@ -102,6 +126,7 @@ CLI 入口，负责解析命令参数并打印 JSON 结果。
 - 浏览器打包：`npm run web:build`
 - 主线 demo：`npm run demo`
 - 空数据 demo：`npm run demo:empty`
+- Rime 日志词云/事件：`npm run rime:journal -- wordcloud --preset today`
 - 发布门禁：`npm run release:check`
 
 ## 4. 测试策略
@@ -122,6 +147,13 @@ npm run demo:empty
 ```bash
 npm run test:agent-f
 npm run test:web
+```
+
+涉及 Rime 日志读取或词云 CLI 时，至少跑：
+
+```bash
+npm test -- tests/rimeJournal.test.ts
+npm run rime:journal -- wordcloud --preset today
 ```
 
 ### 全量验证
@@ -165,6 +197,18 @@ npm run release:check
 - `apps/demo/src/config.ts`
 - `docs/demo/demo-playbook.md`
 - `docs/testing/full-test-guide.md`
+
+### 改真实 Rime 日志链路时
+
+同步检查并更新：
+
+- `rime/lua/commit_logger.lua`
+- `rime/schema.custom.yaml.example`
+- `packages/rime-journal/src/index.ts`
+- `apps/rime-journal/src/index.ts`
+- `tests/rimeJournal.test.ts`
+- `docs/user-guide.md`
+- `docs/developer-guide.md`
 
 ### 改 Web Dashboard 时
 
@@ -225,6 +269,7 @@ npm run release:check
 - 想理解整体架构：先看 [architecture/module-dependency-map.md](./architecture/module-dependency-map.md)
 - 想理解共享模型：看 [contracts/shared-contract.md](./contracts/shared-contract.md)
 - 想理解字段含义：看 [reference/field-dictionary.md](./reference/field-dictionary.md)
+- 想理解真实 Rime 日志：看本文的 `packages/rime-journal` 章节和 [user-guide.md](./user-guide.md)
 - 想理解发布与测试：看 [testing/full-test-guide.md](./testing/full-test-guide.md) 和 [release/release-guide.md](./release/release-guide.md)
 - 想理解风险：看 [qa/risk-register.md](./qa/risk-register.md)
 
