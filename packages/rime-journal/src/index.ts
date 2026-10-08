@@ -38,6 +38,12 @@ export interface RimeCommitJournalEntry {
   schemaId: string;
   text: string;
   inputCode?: string;
+  sessionId?: string;
+  sequence?: number;
+  processClock?: number;
+  boundaryId?: string;
+  focusId?: string;
+  observed?: boolean;
   textLanguage: InputRecordEvent["textLanguage"];
   charCount: number;
 }
@@ -263,6 +269,11 @@ const asJournalEntry = (value: unknown): RimeCommitJournalEntry => {
     schemaId,
     text,
     inputCode: typeof record.inputCode === "string" ? record.inputCode : undefined,
+    sessionId: typeof record.sessionId === "string" ? record.sessionId : undefined,
+    sequence: typeof record.sequence === "number" ? record.sequence : undefined,
+    processClock: typeof record.processClock === "number" ? record.processClock : undefined,
+    boundaryId: typeof record.boundaryId === "string" ? record.boundaryId : undefined,
+    focusId: typeof record.focusId === "string" ? record.focusId : undefined,
     textLanguage,
     charCount:
       typeof record.charCount === "number" && Number.isFinite(record.charCount)

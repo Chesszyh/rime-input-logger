@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { readDashboardJournal } from "../apps/web-dashboard/server/journal-api";
@@ -17,6 +17,8 @@ describe("journal web data", () => {
     ).toBe(1);
     expect(data.date).toBe("2026-06-08");
     expect(data.events.entries).toHaveLength(2);
+    expect(data.activity.timeline.filter((entry) => entry.observed).map((entry) => entry.text).join("")).toBe(" hello");
+    expect(data.activity.timeline).toHaveLength(8);
     expect(
       data.report.wordCloud.find((point) => point.term === "输入分析")?.count,
     ).toBe(2);
@@ -44,6 +46,37 @@ describe("journal web data", () => {
       expect(data.dates).toEqual(["2026-06-08"]);
     } finally {
       rmSync(rawDir, { recursive: true });
+    }
+  });
+
+  it("loads an English-only day without counting observations as commits", () => {
+    const root = mkdtempSync(join(tmpdir(), "rime-activity-"));
+    try {
+      mkdirSync(join(root, "activity"));
+      writeFileSync(
+        join(root, "activity", "2026-06-08.jsonl"),
+        JSON.stringify({
+          kind: "english_observation",
+          occurredAt: "2026-06-08T12:00:00+08:00",
+          sessionId: "test",
+          sequence: 1,
+          text: "a",
+        }) + "\ninvalid",
+      );
+      const data = readDashboardJournal(
+        new URLSearchParams({ rawDir: join(root, "raw"), date: "2026-06-08" }),
+      );
+      expect(data.dates).toEqual(["2026-06-08"]);
+      expect(data.events.entries).toHaveLength(0);
+      expect(data.report.totals.commits).toBe(0);
+      expect(data.activity.timeline).toHaveLength(1);
+      expect(data.activity.timeline[0]).toMatchObject({
+        text: "a",
+        observed: true,
+      });
+      expect(data.activity.errors).toHaveLength(1);
+    } finally {
+      rmSync(root, { recursive: true });
     }
   });
 

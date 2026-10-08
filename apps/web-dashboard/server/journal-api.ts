@@ -1,4 +1,5 @@
 import { readdirSync, existsSync } from "node:fs";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
@@ -7,6 +8,8 @@ import {
   buildWordCloudReport,
   resolveRawDir,
 } from "../../../packages/rime-journal/src/index";
+
+import { readActivity } from "../../../packages/rime-journal/src/activity";
 
 const exampleDir = fileURLToPath(
   new URL("../../../examples/journal/raw/", import.meta.url),
@@ -19,14 +22,18 @@ export function readDashboardJournal(params: URLSearchParams) {
     source === "example"
       ? exampleDir
       : resolveRawDir({ rawDir: params.get("rawDir") || undefined });
-  const exists = existsSync(rawDir);
-  const dates = exists
-    ? readdirSync(rawDir)
+  const activityDir = join(rawDir, "..", "activity");
+  const exists = existsSync(rawDir) || existsSync(activityDir);
+  const dates = [
+    ...new Set(
+      [rawDir, activityDir]
+        .flatMap((dir) => (existsSync(dir) ? readdirSync(dir) : []))
         .filter((name) => /^\d{4}-\d{2}-\d{2}\.jsonl$/.test(name))
-        .map((name) => name.slice(0, 10))
-        .sort()
-        .reverse()
-    : [];
+        .map((name) => name.slice(0, 10)),
+    ),
+  ]
+    .sort()
+    .reverse();
   const today = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Shanghai",
     year: "numeric",
@@ -41,7 +48,8 @@ export function readDashboardJournal(params: URLSearchParams) {
     limit: Number.MAX_SAFE_INTEGER,
   });
   const report = buildWordCloudReport({ ...options, limit: 20 });
-  return { source, rawDir, exists, dates, date, events, report };
+  const activity = readActivity(rawDir, date, events.entries);
+  return { source, rawDir, exists, dates, date, events, report, activity };
 }
 
 export type JournalDashboardData = ReturnType<typeof readDashboardJournal>;

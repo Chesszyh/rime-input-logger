@@ -47,11 +47,25 @@ journalctl --user -u rime-input-logger-web.service -n 30
 
 更新代码后运行 `npm run web:build` 和 `systemctl --user restart rime-input-logger-web.service`。停止自启用 `systemctl --user disable --now rime-input-logger-web.service`。移动仓库或 Node.js 后重新运行安装命令。
 
-## 连续片段
+## 连续片段与行为事件
 
-“每日输入”默认将相邻上屏拼接成连续片段。超过设定间隔（默认 15 秒，可选 5/30 秒）、跨天、输入方案变化或出现中文句末标点、问号、感叹号及换行时分段。文字按原样拼接，不补写英文或改写内容；切换“原始上屏”可逐条核对，JSON 导出始终保留原始事件。
+“每日输入”把相邻确认上屏与英文观察拼接成连续片段。超过间隔（默认 15 秒，可选 5/30 秒）、跨天、会话/方案变化、句末标点、焦点变化、放行的编辑键或快捷键都会分段。取消组合也会建立新边界；正常提交后可继续拼接。片段保留原始文字，不应用退格去猜测最终正文。
 
-这是基于停顿的阅读辅助，不能恢复应用内删除、光标移动或窗口切换；15 秒是可调的产品默认值，不是经过个体校准的语言学阈值。英文漏记与可扩展采集能力见 [输入行为与采集边界](./input-behavior.md)。
+英文观察明确标为“未确认上屏”，不计入上屏次数、字符数或词云；JSON 导出包含原始上屏与独立的 `activity` 事件。历史记录缺少边界信息时继续按时间和标点分组。应用内鼠标定位或编辑结果不一定能被输入法观察到。
+
+安装完整采集链路（需要 `librime-lua` 和独立的 `fcitx5-lua` 插件）：
+
+```bash
+python3 scripts/install-capture.py
+```
+
+安装器复制两个 Rime Lua 文件及 Fcitx5 焦点插件，旧文件保存到 `~/.local/state/rime-input-logger/backups/capture-时间/`。随后按下节应用 schema 补丁，并重启 Fcitx5；若由用户服务启动，运行 `systemctl --user restart fcitx5.service`。仅刷新网页不会加载新的采集器。
+
+两侧默认使用 `~/.local/share/personal-input-analytics`。自定义目录应在 **Fcitx5 进程环境**统一设置绝对路径的 `RIME_COMMIT_LOG_ROOT`，不能只改 Rime 的 schema 路径，否则焦点数据无法关联。`raw/` 保存确认上屏，`activity/` 保存英文观察、组合起止、模式变化及焦点事件，`focus.state` 传递最新焦点标识。不要单独删除配套的 `journal_events.lua`。
+
+回退时将备份文件复制回对应路径；如需停用焦点插件，在 Fcitx5 附加组件中禁用 Rime Journal Focus Boundaries，再重启。已写入的日志不受安装与回退影响。
+
+行为接口与分析边界见 [输入行为与采集边界](./input-behavior.md)。可运行 `python3 tests/native/focus.py` 验证真实 Fcitx5 焦点事件；需要 Fcitx5、fcitx5-lua、dbus-run-session 和 Python dbus 模块，测试使用独立总线与临时目录。
 
 ## 先用合成日志验证命令
 
@@ -72,7 +86,7 @@ Fcitx5 的 Rime 用户目录通常是 `~/.local/share/fcitx5/rime`。若设置�
 ```bash
 rime_user_dir="${XDG_DATA_HOME:-$HOME/.local/share}/fcitx5/rime"
 mkdir -p "$rime_user_dir/lua"
-cp rime/lua/commit_logger.lua "$rime_user_dir/lua/commit_logger.lua"
+cp rime/lua/commit_logger.lua rime/lua/journal_events.lua "$rime_user_dir/lua/"
 ```
 
 在实际使用方案的 `<schema_id>.custom.yaml` 中加入 [配置示例](../rime/schema.custom.yaml.example) 的内容。例如 `rime_ice` 对应 `rime_ice.custom.yaml`，小鹤双拼对应 `double_pinyin_flypy.custom.yaml`。

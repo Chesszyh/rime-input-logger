@@ -88,9 +88,10 @@ export const App = () => {
     setDate("");
   };
   const entries = data?.events.entries ?? [];
+  const timeline = data?.activity?.timeline ?? entries;
   const displayEntries = grouped
-    ? groupJournalEntries(entries, gapSeconds)
-    : entries;
+    ? groupJournalEntries(timeline, gapSeconds)
+    : timeline;
   const filtered = [...displayEntries]
     .reverse()
     .filter((entry) =>
@@ -99,7 +100,15 @@ export const App = () => {
   const exportJson = () => {
     if (!data) return;
     const blob = new Blob(
-      [JSON.stringify(page === "cloud" ? data.report : data.events, null, 2)],
+      [
+        JSON.stringify(
+          page === "cloud"
+            ? data.report
+            : { ...data.events, activity: data.activity },
+          null,
+          2,
+        ),
+      ],
       { type: "application/json" },
     );
     const url = URL.createObjectURL(blob);
@@ -265,6 +274,19 @@ export const App = () => {
         ) : (
           data && (
             <>
+              {data.activity && (
+                <p className="journal-group-note">
+                  行为事件 {data.activity.events.length} 条 · 英文观察{" "}
+                  {
+                    data.activity.timeline.filter((item) => item.observed)
+                      .length
+                  }{" "}
+                  条
+                  {data.activity.errors.length
+                    ? ` · 跳过 ${data.activity.errors.length} 行无效行为记录`
+                    : ""}
+                </p>
+              )}
               <div className="journal-metrics">
                 <section>
                   <span>上屏次数</span>
@@ -292,7 +314,7 @@ export const App = () => {
                   行无效日志（包含对照期）；导出词云 JSON 可查看错误位置。
                 </p>
               )}
-              {entries.length === 0 ? (
+              {timeline.length === 0 ? (
                 <section className="journal-card journal-empty">
                   <span>✎</span>
                   <h2>
@@ -324,8 +346,8 @@ export const App = () => {
                   <div className="journal-section-head">
                     <h2>{grouped ? "连续片段" : "输入时间线"}</h2>
                     <span>
-                      最新在前 · {time(entries[entries.length - 1].occurredAt)}{" "}
-                      最后记录
+                      最新在前 ·{" "}
+                      {time(timeline[timeline.length - 1].occurredAt)} 最后记录
                     </span>
                   </div>
                   <div className="journal-toolbar">
@@ -361,7 +383,7 @@ export const App = () => {
                   </div>
                   {grouped && (
                     <p className="journal-group-note">
-                      按停顿与句末标点拼接；未还原应用内的删除和光标移动。导出保留原始记录。
+                      按停顿、焦点及编辑边界拼接。英文观察未确认上屏，不计入上方统计。
                     </p>
                   )}
                   <input
@@ -383,8 +405,10 @@ export const App = () => {
                           <small>
                             {entry.schemaId} · {entry.charCount} 字符
                             {"entries" in entry
-                              ? ` · ${entry.entries.length} 次上屏`
-                              : ""}
+                              ? ` · ${entry.entries.filter((item) => !item.observed).length} 次上屏 · ${entry.entries.filter((item) => item.observed).length} 次英文观察`
+                              : entry.observed
+                                ? " · 英文观察（未确认上屏）"
+                                : ""}
                           </small>
                         </div>
                       </li>

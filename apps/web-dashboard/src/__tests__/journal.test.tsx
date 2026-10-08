@@ -126,6 +126,29 @@ describe("journal dashboard", () => {
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 
+  it("displays English-only observations with an explicit label", async () => {
+    const observed = {
+      ...example.events.entries[0],
+      text: "English observation",
+      observed: true,
+    };
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ...example,
+        events: { ...example.events, entries: [] },
+        activity: {
+          events: [{ kind: "english_observation" }],
+          errors: [],
+          timeline: [observed],
+        },
+      }),
+    } as Response);
+    render(<App />);
+    await screen.findByText("English observation");
+    expect(screen.getByText(/0 次上屏 · 1 次英文观察/)).toBeInTheDocument();
+  });
+
   it("shows a server error and recovers on refresh", async () => {
     vi.mocked(fetch).mockResolvedValueOnce({
       ok: false,

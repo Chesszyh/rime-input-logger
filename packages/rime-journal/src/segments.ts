@@ -9,7 +9,7 @@ export interface JournalSegment {
   entries: RimeCommitJournalEntry[];
 }
 
-// Commit logs cannot observe edits or focus changes in the destination application.
+// Legacy commits without boundary metadata still use the time and punctuation rule.
 export function groupJournalEntries(
   entries: RimeCommitJournalEntry[],
   gapSeconds = 15,
@@ -26,6 +26,9 @@ export function groupJournalEntries(
       gap < 0 ||
       entry.dateKey !== last.entries[0].dateKey ||
       entry.schemaId !== last.schemaId ||
+      entry.sessionId !== last.entries.at(-1)?.sessionId ||
+      entry.focusId !== last.entries.at(-1)?.focusId ||
+      entry.boundaryId !== last.entries.at(-1)?.boundaryId ||
       /[。！？!?\n][”’」』）)]*$/u.test(last.text)
     ) {
       segments.push({

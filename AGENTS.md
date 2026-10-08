@@ -8,7 +8,7 @@ This npm workspace contains the Personal Input Analytics System, a TypeScript pr
 - `apps/web-dashboard/`: React dashboard; components, pages, styles, and browser tests live under `src/`.
 - `apps/rime-journal/`: command-line interface for real Rime journal data.
 - `packages/`: shared `contracts`, `analytics`, `services`, `dashboard`, `mock-data`, and `rime-journal` modules. Update shared contracts when changing data shapes; keep analysis logic in packages rather than UI components.
-- `rime/`: Lua collector and per-schema configuration example.
+- `rime/`: Lua collectors and per-schema configuration example; `fcitx5/` supplies the focus-boundary addon. `scripts/install-capture.py` installs both with local backups. Keep observed keys separate from confirmed commits.
 - `tests/`: integration and regression suites; reusable fixtures and expected outputs live in `tests/fixtures/`.
 - `docs/`: developer, testing, and release guides. See `docs/rime-journal.md` for capture setup and verification.
 

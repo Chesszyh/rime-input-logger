@@ -1,4 +1,5 @@
 local logger = {}
+local journal_events = require("journal_events")
 
 local function shell_quote(value)
     return "'" .. tostring(value):gsub("'", "'\\''") .. "'"
@@ -110,7 +111,9 @@ local function append_record(env, ctx)
         return
     end
 
-    local now = iso_now()
+    local stamp = env.events:stamp()
+    local now = stamp.occurredAt
+    env.committed = true
     local date_key = now:sub(1, 10)
     local file_path = env.log_dir .. "/" .. date_key .. ".jsonl"
     os.execute("mkdir -p " .. shell_quote(env.log_dir))
@@ -129,6 +132,11 @@ local function append_record(env, ctx)
         json_field("text", text),
         json_field("textLanguage", detect_language(text)),
         json_field("charCount", char_count(text), true),
+        json_field("sessionId", stamp.sessionId),
+        json_field("sequence", stamp.sequence, true),
+        json_field("processClock", stamp.processClock, true),
+        json_field("boundaryId", stamp.boundaryId),
+        json_field("focusId", stamp.focusId or "unobserved"),
         json_field("inputCode", input_code)
     }
 
@@ -157,6 +165,9 @@ function logger.init(env)
         or config:get_string("commit_logger/root")
         or "~/.local/share/personal-input-analytics"
 
+    env.events = journal_events.new(expand_home(configured_root), config:get_string("schema/schema_id") or "unknown")
+    env.composing = false
+    env.committed = false
     env.log_dir = expand_home(configured_root) .. "/raw"
     env.debug_path = expand_home(configured_root) .. "/debug.log"
     env.schema_id = config:get_string("schema/schema_id") or "unknown"
@@ -168,6 +179,33 @@ function logger.init(env)
     append_debug(env, "init schema=" .. env.schema_id .. " log_dir=" .. env.log_dir)
     env.commit_connection = env.engine.context.commit_notifier:connect(function(ctx)
         append_record(env, ctx)
+    end)
+    env.update_connection = env.engine.context.update_notifier:connect(function(ctx)
+        local composing = ctx:is_composing()
+        if composing and not env.composing then
+            env.committed = false
+            env.events:emit("composition_start")
+        elseif not composing and env.composing then
+            env.events:emit("composition_end", {reason = env.committed and "commit" or "cancel"})
+            if not env.committed then env.events:split("cancel_boundary") end
+        end
+        env.composing = composing
+    end)
+    env.option_connection = env.engine.context.option_update_notifier:connect(function(_, name)
+        if name == "ascii_mode" then env.events:emit("mode_change", {asciiMode = env.engine.context:get_option("ascii_mode")}) end
+    end)
+    env.unhandled_connection = env.engine.context.unhandled_key_notifier:connect(function(ctx, key)
+        if key:release() then return end
+        if key:ctrl() or key:alt() or key:super() then
+            env.events:split("shortcut_boundary")
+            return
+        end
+        local code = key.keycode
+        if ctx:get_option("ascii_mode") and code >= 32 and code <= 126 then
+            env.events:emit("english_observation", {text = string.char(code)})
+        elseif code == 65288 or code == 65535 or code == 65293 or code == 65289 or (code >= 65360 and code <= 65367) then
+            env.events:split("edit_boundary")
+        end
     end)
 end
 
@@ -185,9 +223,10 @@ function logger.func(_, env)
 end
 
 function logger.fini(env)
-    if env.commit_connection then
-        env.commit_connection:disconnect()
+    for _, name in ipairs({"commit_connection", "update_connection", "option_connection", "unhandled_connection"}) do
+        if env[name] then env[name]:disconnect() end
     end
+    env.events:emit("session_end")
 end
 
 return logger
